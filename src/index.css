@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-blue-start: #2563eb;
+  --color-brand-blue-end: #3b82f6;
+  --color-brand-vibrant: #2563eb;
+}
+
+@layer base {
+  body {
+    background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 50%, #00CC99 100%) !important;
+    background-attachment: fixed !important;
+    color: #0f172a;
+    @apply transition-colors duration-300;
+  }
+  .dark body {
+    background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 50%, #00CC99 100%) !important;
+    background-attachment: fixed !important;
+    color: #f8fafc;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* Custom Premium Scrollbars styled with brand amber */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-amber-600/10 rounded-full hover:bg-amber-600/20 transition-colors;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/15 dark:bg-black/25 backdrop-blur-md border-b border-white/20 shadow-xs text-slate-900 dark:text-slate-50;
+  }
+  .dark .glass {
+    @apply bg-white/15 dark:bg-black/25 backdrop-blur-md border-b border-white/20 shadow-xs text-slate-900 dark:text-slate-50;
+  }
+  
+  .glass-card {
+    @apply bg-white/25 dark:bg-black/30 border border-white/30 dark:border-white/10 shadow-lg rounded-[24px] relative overflow-hidden transition-all duration-300 hover:shadow-xl text-slate-900 dark:text-slate-50;
+  }
+  .dark .glass-card {
+    @apply bg-white/25 dark:bg-black/30 border border-white/30 dark:border-white/10 shadow-lg rounded-[24px] relative overflow-hidden transition-all duration-300 hover:shadow-xl text-slate-900 dark:text-slate-50;
+  }
+
+  .accent-glow {
+    @apply relative after:absolute after:inset-0 after:rounded-[inherit] after:border-0 after:pointer-events-none;
+  }
+
+  /* Precise Pill/Capsule style like the image */
+  .brand-pill {
+    @apply inline-flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:opacity-95 transition-all shadow-sm;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@keyframes shine {
+  from { background-position: 0 0; }
+  to { background-position: 30px 0; }
+}

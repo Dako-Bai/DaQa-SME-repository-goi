@@ -1,0 +1,8 @@
+{
+  "name": "Remix: ---\u003e Remix: Remix: SmartME-website \u003c---",
+  "description": " 6-Remix : SmartME Analytical Workspace.  Smart ME.kz analytical workspace for NB and AZK calculation and data analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
