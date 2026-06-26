@@ -7,7 +7,12 @@ import { useAppContext } from '../contexts/AppContext';
 import { SpotPricesPanel } from '../components/SpotPricesPanel';
 
 export default function PricesPage() {
-  const { lang, role, setRole, managedPrices, updateManagedPrice, currentUser, priceDisplayUnit } = useAppContext();
+  const { lang, role, setRole, managedPrices, updateManagedPrice, currentUser, priceDisplayUnit, contactsState } = useAppContext();
+
+  const cs = contactsState || {};
+  const infoSystemTitle = cs[`infoSystemTitle${lang === 'kz' ? 'Kz' : lang === 'ru' ? 'Ru' : 'En'}`] || cs.infoSystemTitleKz || (lang === 'kz' ? 'MERCURY ENERGY • Ресми баға саясаты' : 'MERCURY ENERGY • Официальная ценовая политика');
+  const infoSystemDesc = cs[`infoSystemDesc${lang === 'kz' ? 'Kz' : lang === 'ru' ? 'Ru' : 'En'}`] || cs.infoSystemDescKz || (lang === 'kz' ? 'Біз серіктестерімізге ең тиімді көтерме және бөлшек бағаларды, Сингапур және Argus халықаралық баға көрсеткіштерімен салыстырылған нақты деректерді ұсынамыз. Барлық деректер нақты уақытта жаңартылып отырады.' : 'Мы предоставляем нашим партнерам самые выгодные оптовые и розничные котировки, основанные на международных индексах Сингапура и Argus. Все данные обновляются в реальном времени.');
+  const infoSystemImage = cs.infoSystemImage;
 
   const isGuest = role === 'guest' || !currentUser;
 
@@ -271,32 +276,34 @@ export default function PricesPage() {
   });
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24 animate-fade-in relative text-slate-100">
+    <div className="flex-1 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24 animate-fade-in relative text-slate-100">
       
       {/* Current Spot Prices Panel displayed prominently on the Prices Page */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         <div className="lg:col-span-6 flex">
           <SpotPricesPanel />
         </div>
-        <div className="lg:col-span-6 p-7 sm:p-8 rounded-[2rem] bg-gradient-to-br from-slate-900 to-[#102456] border border-blue-400/20 text-white min-h-[290px] flex flex-col justify-between">
-          <div className="space-y-4 text-left">
+        <div 
+          className="lg:col-span-6 p-7 sm:p-8 rounded-[2rem] border border-blue-400/20 text-white min-h-[290px] flex flex-col justify-between relative overflow-hidden group shadow-xl"
+          style={infoSystemImage ? { backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.82), rgba(16, 36, 86, 0.9)), url(${infoSystemImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+        >
+          {!infoSystemImage && <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-[#102456] -z-10" />}
+          <div className="space-y-4 text-left relative z-10">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-300 text-[10px] font-black uppercase tracking-widest border border-blue-500/15">
               <Info className="w-3.5 h-3.5" /> {lang === 'kz' ? 'Ақпараттық Жүйе' : 'Информационная Справка'}
             </span>
-            <h2 className="text-xl sm:text-2xl font-black text-white leading-tight font-sans">
-              MERCURY ENERGY • {lang === 'kz' ? 'Ресми баға саясаты' : 'Официальная ценовая политика'}
+            <h2 className="text-xl sm:text-2xl font-black text-white leading-tight font-display">
+              {infoSystemTitle}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-              {lang === 'kz' 
-                ? 'Біз серіктестерімізге ең тиімді көтерме және бөлшек бағаларды, Сингапур және Argus халықаралық баға көрсеткіштерімен салыстырылған нақты деректерді ұсынамыз. Барлық деректер нақты уақытта жаңартылып отырады.'
-                : 'Мы предоставляем нашим партнерам самые выгодные оптовые и розничные котировки, основанные на международных индексах Сингапура и Argus. Все данные обновляются в реальном времени.'}
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal whitespace-pre-wrap">
+              {infoSystemDesc}
             </p>
             <div className="pt-2 text-xs text-amber-300 font-mono flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span>{lang === 'kz' ? 'Ресми тарифтер • Барлығы ашық' : 'Официальные тарифы • Все открыто'}</span>
             </div>
           </div>
-          <div className="pt-4 border-t border-white/5 text-[10px] text-slate-400 font-mono text-left">
+          <div className="pt-4 border-t border-white/5 text-[10px] text-slate-400 font-mono text-left relative z-10">
             System Live Platform • Verified refinery intelligence
           </div>
         </div>

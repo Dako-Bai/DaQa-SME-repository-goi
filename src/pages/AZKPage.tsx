@@ -96,7 +96,11 @@ export default function AZKPage() {
   });
 
   React.useEffect(() => {
-    localStorage.setItem('smartme_azk_stations', JSON.stringify(stations));
+    try {
+      localStorage.setItem('smartme_azk_stations', JSON.stringify(stations));
+    } catch (e) {
+      console.warn("Storage quota exceeded for AZK stations state.", e);
+    }
   }, [stations]);
 
   const [activeStationId, setActiveStationId] = React.useState('azk-01');

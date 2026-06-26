@@ -12,7 +12,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
         </main>
         <footer className="py-8 mt-12 bg-white/10 dark:bg-black/20 border-t border-white/20 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-400">
+          <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-400">
             <p>&copy; {new Date().getFullYear()} SmartME Mercury Energy. All rights reserved.</p>
             <div className="flex gap-4 mt-4 sm:mt-0">
                <a href="#" className="hover:text-amber-400 transition">Contact Us</a>

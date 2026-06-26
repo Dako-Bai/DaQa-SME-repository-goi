@@ -95,7 +95,7 @@ export const SpotPricesPanel: React.FC = () => {
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-2">
             <Coins className="w-5 h-5 text-amber-300" />
-            <h3 className="text-white font-black text-lg font-sans tracking-tight uppercase">
+            <h3 className="text-white font-black text-lg font-display tracking-tight uppercase">
               {lang === 'kz' ? 'Ағымдағы Бағалар' : lang === 'ru' ? 'Текущие Цены' : 'Current Prices'}
             </h3>
             <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981] shrink-0" />

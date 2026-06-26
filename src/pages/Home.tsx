@@ -111,7 +111,24 @@ export default function Home() {
     }
   }, [bannersState?.autoplay, bannersState?.autoplaySpeed, activeSlides.length]);
 
-  const activeSlide = activeSlides[currentSlideIndex] || activeSlides[0];
+  const activeSlide = activeSlides[currentSlideIndex] || activeSlides[0] || {
+    id: 'slide_fallback',
+    titleKz: bannersState?.heroTitleKz || 'SmartME \nMercury Energy',
+    titleRu: bannersState?.heroTitleRu || 'SmartME \nMercury Energy',
+    titleEn: bannersState?.heroTitleEn || 'SmartME \nMercury Energy',
+    descKz: bannersState?.heroDescKz || '',
+    descRu: bannersState?.heroDescRu || '',
+    descEn: bannersState?.heroDescEn || '',
+    bgType: 'image',
+    bgImage: bannersState?.heroImage || '/src/assets/images/energy_terminal_bg_1781522513129.jpg',
+    bgGradient: 'from-blue-950 via-slate-900 to-indigo-950',
+    overlayOpacity: 0.85,
+    buttonTextKz: '',
+    buttonTextRu: '',
+    buttonTextEn: '',
+    buttonLink: '',
+    textAlign: 'left'
+  };
 
   const handleNextSlide = () => {
     if (activeSlides.length > 1) {
@@ -126,7 +143,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16 pb-24 animate-fade-in text-slate-100">
+    <div className="flex-1 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16 pb-24 animate-fade-in text-slate-100">
       
       {/* 1. Highly Elegant, Lightweight Corporate Hero Section */}
       <section 
@@ -147,7 +164,7 @@ export default function Home() {
           activeSlide.textAlign === 'right' ? 'text-right flex flex-col items-end' : 'text-left'
         }`}>
           <div className="space-y-3 w-full">
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight font-sans whitespace-pre-line animate-fade-in">
+            <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight font-display whitespace-pre-line animate-fade-in">
               {lang === 'kz' ? activeSlide.titleKz : lang === 'ru' ? activeSlide.titleRu : activeSlide.titleEn}
             </h1>
           </div>
@@ -294,7 +311,7 @@ export default function Home() {
                 <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider">
                   {lang === 'kz' ? 'Жаңа отын маркасын қосу' : lang === 'ru' ? 'Добавить марку топлива' : 'Add Wholesale Oil Grade'}
                 </h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input 
                     type="text"
                     required
@@ -312,7 +329,7 @@ export default function Home() {
                     className="w-full text-xs px-3 py-2 bg-[#1444ca] text-white border border-blue-400/30 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 font-mono placeholder-blue-300 font-medium"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input 
                     type="text"
                     placeholder="Standard (EURO-5, GOST)"

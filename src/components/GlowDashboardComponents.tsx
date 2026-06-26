@@ -85,21 +85,32 @@ export const GlowReservoirGrid: React.FC<GlowReservoirGridProps> = ({
             </div>
 
             {/* Cylinder Visual Body */}
-            <div className="bg-slate-950/40 rounded-3xl p-4 flex flex-col items-center justify-center relative shadow-inner border border-white/5 mb-3">
-              <div className="relative w-16 h-28 bg-slate-950/70 rounded-2xl border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl">
+            <div className="bg-slate-950/65 rounded-3xl p-4 flex flex-col items-center justify-center relative shadow-inner border border-white/5 mb-3">
+              <div className="relative w-20 h-32 bg-slate-950/80 rounded-b-[1.25rem] rounded-t-[1.25rem] border-2 border-white/15 flex items-center justify-center overflow-hidden shadow-2xl">
+                {/* 3D Glass Cylinder Top Cap */}
+                <div className="absolute top-0 left-0 right-0 h-3.5 bg-white/15 border-b border-white/20 rounded-[50%] z-20 pointer-events-none" />
+                
                 {/* Liquid fill animation */}
                 <div 
                   className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t ${colors.gradient} transition-all duration-700`}
                   style={{ height: `${fillPct}%` }}
-                />
+                >
+                  {/* Liquid Top 3D Ellipse Cap */}
+                  {fillPct > 0 && (
+                    <div 
+                      className="absolute -top-1.5 left-0 right-0 h-3 rounded-[50%] opacity-85 border-t border-white/25"
+                      style={{ backgroundColor: 'currentColor' }}
+                    />
+                  )}
+                </div>
                 
-                {/* 3D highlights */}
-                <div className="absolute inset-y-0 left-1.5 w-1.5 bg-white/10 opacity-35 blur-[0.5px] rounded-full" />
-                <div className="absolute inset-y-0 right-1.5 w-1 bg-black/25 opacity-25 blur-[0.5px] rounded-full" />
-                <div className="absolute top-1 left-1 bg-white/10 right-1 h-1.5 rounded-full" />
+                {/* 3D highlights / glass reflections */}
+                <div className="absolute inset-y-0 left-2 w-1.5 bg-gradient-to-r from-white/25 to-transparent opacity-45 blur-[0.5px] z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 right-2 w-1.5 bg-gradient-to-l from-black/40 to-transparent opacity-35 blur-[0.5px] z-10 pointer-events-none" />
+                <div className="absolute top-1 left-2 bg-white/10 right-2 h-1 rounded-full z-15 pointer-events-none" />
                 
                 {/* Percent label */}
-                <span className="relative z-10 font-mono text-xs font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                <span className="relative z-20 font-mono text-xs sm:text-sm font-black text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.9)]">
                   {fillPct}%
                 </span>
               </div>
@@ -184,26 +195,37 @@ export const GlowTelemetryPanel: React.FC<GlowTelemetryPanelProps> = ({
 
       {/* Main 3D graphic block */}
       <div className="bg-black/35 rounded-2xl p-3 flex flex-col items-center justify-center relative shadow-inner border border-white/10 py-3.5">
-        <div className="relative w-20 h-28 bg-slate-950/80 rounded-2xl border-2 border-white/10 flex items-center justify-center overflow-hidden shadow-2xl">
+        <div className="relative w-24 h-36 bg-slate-950/80 rounded-b-[1.5rem] rounded-t-[1.5rem] border-2 border-white/15 flex items-center justify-center overflow-hidden shadow-2xl">
+          {/* 3D Glass Cylinder Top Cap */}
+          <div className="absolute top-0 left-0 right-0 h-4 bg-white/15 border-b border-white/20 rounded-[50%] z-25 pointer-events-none" />
+
           {/* Liquid level layer */}
           <div 
             className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t ${colors.gradient} transition-all duration-700`}
             style={{ height: `${fillPct}%` }}
-          />
+          >
+            {/* Liquid Top 3D Ellipse Cap */}
+            {fillPct > 0 && (
+              <div 
+                className="absolute -top-2 left-0 right-0 h-3.5 rounded-[50%] opacity-85 border-t border-white/25"
+                style={{ backgroundColor: 'currentColor' }}
+              />
+            )}
+          </div>
 
           {/* Under-liquid H2O layer (waterLevel) */}
           {reservoir.waterLevel > 0 && (
             <div 
-              className="absolute bottom-0 left-0 right-0 bg-sky-400 border-t border-sky-300 text-[7px] text-slate-950 font-black flex items-center justify-center overflow-hidden transition-all duration-550"
-              style={{ height: `${Math.min(14, reservoir.waterLevel * 2.5)}px` }}
+              className="absolute bottom-0 left-0 right-0 bg-sky-400 border-t border-sky-300 text-[7px] text-slate-950 font-black flex items-center justify-center overflow-hidden transition-all duration-550 z-10"
+              style={{ height: `${Math.min(18, reservoir.waterLevel * 2.5)}px` }}
             >
               <span className="opacity-90 tracking-widest text-[6px] leading-none">H2O</span>
             </div>
           )}
 
           {/* Alignment ticks inside cylinder grid */}
-          <div className="absolute inset-0 flex flex-col justify-between p-1.5 pointer-events-none text-white/15 text-[7px] font-mono select-none">
-            <div className="border-b border-dashed border-white/5 pt-0.5 w-full flex justify-between">
+          <div className="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none text-white/15 text-[7px] font-mono select-none z-15">
+            <div className="border-b border-dashed border-white/5 pt-1 w-full flex justify-between">
               <span>100</span>
               <span>MAX</span>
             </div>
@@ -224,13 +246,13 @@ export const GlowTelemetryPanel: React.FC<GlowTelemetryPanelProps> = ({
             </div>
           </div>
 
-          {/* Glass glare highlight */}
-          <div className="absolute inset-y-0 left-1.5 w-1.5 bg-white/5 opacity-45 blur-[1px] rounded-full" />
-          <div className="absolute inset-y-0 right-1.5 w-1 bg-black/30 opacity-40 blur-[1px] rounded-full" />
-          <div className="absolute top-1 inset-x-2 h-1 bg-white/15 rounded-full" />
+          {/* 3D highlights / glass reflections */}
+          <div className="absolute inset-y-0 left-2.5 w-1.5 bg-gradient-to-r from-white/20 to-transparent opacity-45 blur-[0.5px] z-20 pointer-events-none" />
+          <div className="absolute inset-y-0 right-2.5 w-1.5 bg-gradient-to-l from-black/35 to-transparent opacity-35 blur-[0.5px] z-20 pointer-events-none" />
+          <div className="absolute top-1 left-2.5 bg-white/10 right-2.5 h-1 rounded-full z-20 pointer-events-none" />
 
           {/* Float percentage label */}
-          <div className="relative z-10 font-mono text-xl font-black text-white drop-shadow-[0_4px_6px_rgba(0,0,0,0.95)]">
+          <div className="relative z-30 font-mono text-xl font-black text-white drop-shadow-[0_4px_6px_rgba(0,0,0,0.95)]">
             {fillPct}%
           </div>
         </div>

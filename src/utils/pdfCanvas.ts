@@ -291,7 +291,11 @@ export function renderHubPDF(activeHub: Hub, operatorName: string) {
   const finalImage = canvas.toDataURL('image/jpeg', 0.95);
   const win = window.open('', '_blank');
   if (!win) {
-    alert("Браузер поп-ап терезелерді бұғаттады. Есепті баспаға шығару үшін поп-ап терезелерді ашуға рұқсат беріңіз!");
+    try {
+      alert("Браузер поп-ап терезелерді бұғаттады. Есепті баспаға шығару үшін поп-ап терезелерді ашуға рұқсат беріңіз!");
+    } catch (e) {
+      console.warn("Popup blocked notice was prevented in sandbox.");
+    }
     return;
   }
 

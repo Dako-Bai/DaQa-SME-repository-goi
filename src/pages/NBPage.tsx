@@ -16,6 +16,14 @@ import {
   getFuelGlowColors
 } from '../components/GlowDashboardComponents';
 
+const safeAlert = (msg: string) => {
+  try {
+    window.alert(msg);
+  } catch (e) {
+    console.warn("Alert blocked in sandbox environment:", msg);
+  }
+};
+
 export default function CombinedMonitorPage() {
   const { lang, currentUser, logUserAction } = useAppContext();
   const [showTelemetry, setShowTelemetry] = React.useState(true);
@@ -34,7 +42,11 @@ export default function CombinedMonitorPage() {
   });
 
   React.useEffect(() => {
-    localStorage.setItem('smartme_geohubs_v3', JSON.stringify(hubs));
+    try {
+      localStorage.setItem('smartme_geohubs_v3', JSON.stringify(hubs));
+    } catch (e) {
+      console.warn("Storage quota exceeded for geohubs, keeping state in memory only.", e);
+    }
   }, [hubs]);
 
   const [activeHubId, setActiveHubId] = React.useState('almaty');
@@ -65,7 +77,11 @@ export default function CombinedMonitorPage() {
       reader.onloadend = () => {
         const base64 = reader.result as string;
         setSchematicBg(base64);
-        localStorage.setItem('smartme_schematic_bg', base64);
+        try {
+          localStorage.setItem('smartme_schematic_bg', base64);
+        } catch (err) {
+          console.warn("Storage quota exceeded, keeping schematic in-memory only.", err);
+        }
         logUserAction(`Жаңа технологиялық сызба суреті жүктелді (${file.name})`);
       };
       reader.readAsDataURL(file);
@@ -92,7 +108,11 @@ export default function CombinedMonitorPage() {
   });
 
   React.useEffect(() => {
-    localStorage.setItem('smartme_hubs_locked', JSON.stringify(lockedHubs));
+    try {
+      localStorage.setItem('smartme_hubs_locked', JSON.stringify(lockedHubs));
+    } catch (e) {
+      console.warn("Storage quota exceeded for lockedHubs.", e);
+    }
   }, [lockedHubs]);
 
   const toggleLockHub = (id: string, e: React.MouseEvent) => {
@@ -146,12 +166,12 @@ export default function CombinedMonitorPage() {
 
   const submitNewHub = () => {
     if (!newHubName.trim() || !newHubIdEn.trim()) {
-      alert('Орын атауы мен ағылшынша форматын енгізіңіз!');
+      safeAlert('Орын атауы мен ағылшынша форматын енгізіңіз!');
       return;
     }
     const safeId = newHubIdEn.toLowerCase().replace(/[^a-z0-9]/g, '_');
     if (hubs.some(h => h.id === safeId)) {
-      alert('Мұндай ID-і бар хаб қазірдің өзінде тіркелген!');
+      safeAlert('Мұндай ID-і бар хаб қазірдің өзінде тіркелген!');
       return;
     }
 
@@ -192,11 +212,11 @@ export default function CombinedMonitorPage() {
 
   const submitNewReservoir = () => {
     if (!newResId.trim()) {
-      alert('Резервуар ID енгізіңіз!');
+      safeAlert('Резервуар ID енгізіңіз!');
       return;
     }
     if (newResVolume > newResCapacity) {
-      alert('ҚАТЕ: Отын мөлшері максималды сыйымдылықтан аса алмайды!');
+      safeAlert('ҚАТЕ: Отын мөлшері максималды сыйымдылықтан аса алмайды!');
       return;
     }
 
@@ -231,7 +251,7 @@ export default function CombinedMonitorPage() {
     });
 
     if (isDuplicate) {
-      alert('Бұл хабта мұндай ID резервуары бар!');
+      safeAlert('Бұл хабта мұндай ID резервуары бар!');
       return;
     }
 
@@ -330,17 +350,17 @@ export default function CombinedMonitorPage() {
 
   const handleSaveEdits = () => {
     if (!editResId.trim()) {
-      alert('Резервуар ID бос болмауы тиіс!');
+      safeAlert('Резервуар ID бос болмауы тиіс!');
       return;
     }
     const cleanId = editResId.trim().toUpperCase();
 
     if (editVolume > editCapacity) {
-      alert(`Валидация Қатесі: Ағымдағы мөлшері (${editVolume} м³) резервуар сыйымдылығынан (${editCapacity} м³) аса алмайды!`);
+      safeAlert(`Валидация Қатесі: Ағымдағы мөлшері (${editVolume} м³) резервуар сыйымдылығынан (${editCapacity} м³) аса алмайды!`);
       return;
     }
     if (editVolume < 0 || editCapacity <= 0 || editWaterLevel < 0) {
-      alert('Енгізілген параметрлер дұрыс емес!');
+      safeAlert('Енгізілген параметрлер дұрыс емес!');
       return;
     }
 
@@ -348,7 +368,7 @@ export default function CombinedMonitorPage() {
     if (cleanId !== activeRes.id) {
       const isDuplicate = activeHub.reservoirs.some(r => r.id === cleanId);
       if (isDuplicate) {
-        alert('ҚАТЕ: Мұндай ID-і бар резервуар қазірдің өзінде бар!');
+        safeAlert('ҚАТЕ: Мұндай ID-і бар резервуар қазірдің өзінде бар!');
         return;
       }
     }
@@ -385,7 +405,7 @@ export default function CombinedMonitorPage() {
     setSelectedResId(cleanId);
     setIsEditMode(false);
     logUserAction(`Жаңартылды: Резервуар ${cleanId} параметрлері өңделді.`);
-    alert(`Резервуар ${cleanId} параметрлері өңделді!`);
+    safeAlert(`Резервуар ${cleanId} параметрлері өңделді!`);
   };
 
   // PDF Export
@@ -460,25 +480,29 @@ export default function CombinedMonitorPage() {
   };
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 pb-32">
+    <div className="flex-1 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 pb-32">
       
       {/* 1. TOP SECTION: Device-Uploaded IMAGE workspace canvas (Centrally loaded, borderless, pinned) */}
       <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-white/10 border border-white/20 backdrop-blur-md">
         
-        {/* Admin and General info header for schematic board */}
-        <div className="p-4 flex flex-wrap justify-between items-center gap-2 border-b border-white/20 bg-black/25">
-          <div>
-            <h2 className="text-lg font-black tracking-[0.3em] uppercase text-white font-sans flex items-center gap-2 select-none">
-              O R N A L A S U
-            </h2>
+        {/* Centered magnificent title */}
+        <div className="p-5 flex flex-col items-center justify-center border-b border-white/25 bg-black/40 text-center">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+            <span className="text-[10px] font-black tracking-[0.3em] text-blue-300 uppercase font-mono">
+              {lang === 'kz' ? 'БАҚЫЛАУ ЖӘНЕ КАРТА' : lang === 'ru' ? 'МОНИТОРИНГ И КАРТА' : 'MONITORING & GEOLOCATION'}
+            </span>
           </div>
+          <h2 className="text-xl sm:text-3xl font-extrabold tracking-[0.35em] text-white uppercase font-sans drop-shadow-[0_2px_10px_rgba(59,130,246,0.3)]">
+            O R N A L A S U
+          </h2>
           
-          <div className="flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             {/* Admin Action: Upload custom blueprint or schematic background */}
             {isAdmin && (
-              <div className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg border border-white/30 transition text-[11px] font-bold text-slate-800 dark:text-white relative cursor-pointer">
+              <div className="flex items-center gap-1.5 bg-white/20 hover:bg-white/35 px-3 py-1.5 rounded-lg border border-white/30 transition text-[11px] font-bold text-white relative cursor-pointer">
                 <Upload className="w-3.5 h-3.5" />
-                <span>Сызба жүктеу</span>
+                <span>{lang === 'kz' ? 'Сызба жүктеу' : 'Сызба жүктеу'}</span>
                 <input 
                   type="file" 
                   accept="image/*" 
@@ -491,9 +515,9 @@ export default function CombinedMonitorPage() {
             {schematicBg && isAdmin && (
               <button 
                 onClick={handleClearSchematic}
-                className="bg-rose-500/80 hover:bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1"
+                className="bg-rose-500/80 hover:bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1 border border-rose-500/20"
               >
-                <Trash2 className="w-3.5 h-3.5" /> Бастапқы сызба
+                <Trash2 className="w-3.5 h-3.5" /> {lang === 'kz' ? 'Бастапқы сызба' : 'Бастапқы сызба'}
               </button>
             )}
 
@@ -501,9 +525,9 @@ export default function CombinedMonitorPage() {
             {isAdmin && (
               <button
                 onClick={() => setShowAddHubModal(true)}
-                className="bg-emerald-500/95 hover:bg-emerald-600 text-slate-950 font-black px-3.5 py-1.5 rounded-lg text-[11px] uppercase tracking-wider flex items-center gap-1 transition"
+                className="bg-emerald-500/90 hover:bg-emerald-600 text-slate-950 font-black px-3.5 py-1.5 rounded-lg text-[11px] uppercase tracking-wider flex items-center gap-1 transition shadow-md"
               >
-                <Plus className="w-3.5 h-3.5" /> Жаңа нүкте қосу
+                <Plus className="w-3.5 h-3.5" /> {lang === 'kz' ? 'Жаңа нүкте қосу' : 'Жаңа нүкте қосу'}
               </button>
             )}
           </div>
@@ -514,13 +538,13 @@ export default function CombinedMonitorPage() {
           ref={canvasRef}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
-          className="relative w-full h-[320px] sm:h-[400px] md:h-[460px] lg:h-[520px] flex items-center justify-center overflow-hidden select-none bg-slate-950"
+          className="relative w-full aspect-[2/1] sm:aspect-[2.2/1] md:aspect-[2.4/1] min-h-[300px] sm:min-h-[380px] md:min-h-[460px] flex items-center justify-center overflow-hidden select-none bg-slate-950"
         >
           {schematicBg ? (
             <img 
               src={schematicBg} 
               alt="System schematic map" 
-              className="w-full h-full object-cover select-none borderless" 
+              className="w-full h-full object-contain select-none borderless" 
               referrerPolicy="no-referrer"
             />
           ) : (

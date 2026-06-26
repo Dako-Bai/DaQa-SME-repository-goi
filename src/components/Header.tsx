@@ -27,9 +27,6 @@ export default function Header() {
     ] : []),
     { name: t('nav_prices'), path: '/prices' },
     { name: t('nav_contacts'), path: '/contacts' },
-    ...(role === 'admin' ? [
-      { name: lang === 'kz' ? 'Басқару (Admin)' : lang === 'ru' ? 'Басқару (Admin)' : 'Admin Panel', path: '/admin' },
-    ] : []),
     ...(role !== 'guest' ? [
       { name: lang === 'kz' ? 'Профиль' : lang === 'ru' ? 'Профиль' : 'Profile', path: '/profile' },
     ] : []),
@@ -37,7 +34,7 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 inset-x-0 z-50 glass border-b-0 border-white/20 dark:border-white/5 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center gap-2 sm:gap-4">
@@ -48,7 +45,7 @@ export default function Header() {
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             <Link to="/" className="flex items-center gap-2 select-none group">
-              <span className="font-extrabold text-lg sm:text-xl tracking-tight text-white flex items-center gap-1.5 font-['Space_Grotesk']">
+              <span className="font-extrabold text-lg sm:text-xl tracking-tight text-white flex items-center gap-1.5 font-display">
                 <span className="bg-white text-[#245dff] px-2.5 py-1 rounded-xl text-sm font-black shadow-sm group-hover:scale-98 transition-transform">
                   SmartME
                 </span>

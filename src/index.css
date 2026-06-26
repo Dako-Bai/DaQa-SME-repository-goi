@@ -1,10 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", "Lexend", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Nunito", "Lexend", "Space Grotesk", sans-serif;
   --color-brand-blue-start: #2563eb;
   --color-brand-blue-end: #3b82f6;
   --color-brand-vibrant: #2563eb;
@@ -15,16 +16,20 @@
     background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 50%, #00CC99 100%) !important;
     background-attachment: fixed !important;
     color: #0f172a;
+    font-family: "Manrope", "Lexend", sans-serif;
     @apply transition-colors duration-300;
   }
   .dark body {
     background: linear-gradient(135deg, #1E90FF 0%, #00BFFF 50%, #00CC99 100%) !important;
     background-attachment: fixed !important;
     color: #f8fafc;
+    font-family: "Manrope", "Lexend", sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Nunito", "Lexend", "Manrope", sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
   }
 
   /* Custom Premium Scrollbars styled with brand amber */

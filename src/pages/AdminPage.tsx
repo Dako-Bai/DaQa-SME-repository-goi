@@ -24,11 +24,27 @@ import {
   Sparkles,
   Database,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Upload,
+  Building2,
+  Phone,
+  Clock,
+  Award,
+  FlaskConical,
+  CircleUser
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import CmsManagementPanel from '../components/CmsManagementPanel';
 
-export default function AdminPage() {
+const safeAlert = (msg: string) => {
+  try {
+    window.alert(msg);
+  } catch (e) {
+    console.warn("Alert blocked in sandbox environment:", msg);
+  }
+};
+
+export default function AdminPage({ activeTabOverride, hideHeaderAndTabs }: { activeTabOverride?: 'banners' | 'prices' | 'stations' | 'tanks' | 'users' | 'logs'; hideHeaderAndTabs?: boolean } = {}) {
   const { 
     lang, 
     role, 
@@ -67,7 +83,11 @@ export default function AdminPage() {
     managedPrices,
     addManagedPrice,
     updateManagedPrice,
-    deleteManagedPrice
+    deleteManagedPrice,
+    leadersList,
+    updateLeadersList,
+    contactsState,
+    updateContactsState
   } = useAppContext();
 
   const getDensity = (brandName: string) => {
@@ -79,7 +99,13 @@ export default function AdminPage() {
   };
 
   // Selected tab
-  const [activeTab, setActiveTab] = useState<'banners' | 'prices' | 'stations' | 'tanks' | 'users' | 'logs'>('banners');
+  const [activeTab, setActiveTab] = useState<'banners' | 'prices' | 'stations' | 'tanks' | 'users' | 'logs'>(() => activeTabOverride || 'banners');
+
+  React.useEffect(() => {
+    if (activeTabOverride) {
+      setActiveTab(activeTabOverride);
+    }
+  }, [activeTabOverride]);
 
   // Tanks configuration tab state
   const [selectedAdmTankId, setSelectedAdmTankId] = useState('');
@@ -143,6 +169,126 @@ export default function AdminPage() {
   const [bEnDesc, setBEnDesc] = useState(bannersState.heroDescEn || '');
   const [bImage, setBImage] = useState(bannersState.heroImage || '');
   const [isSavingBanners, setIsSavingBanners] = useState(false);
+
+  // --- CMS SUB-TAB STATE ---
+  const [cmsSubTab, setCmsSubTab] = useState<'slider' | 'leaders' | 'contacts'>('slider');
+
+  // Leaders CMS Editing States
+  const [editingLeaderId, setEditingLeaderId] = useState<string | null>(null);
+  const [leaderNameKz, setLeaderNameKz] = useState('');
+  const [leaderNameRu, setLeaderNameRu] = useState('');
+  const [leaderNameEn, setLeaderNameEn] = useState('');
+  const [leaderTitleKz, setLeaderTitleKz] = useState('');
+  const [leaderTitleRu, setLeaderTitleRu] = useState('');
+  const [leaderTitleEn, setLeaderTitleEn] = useState('');
+  const [leaderSubKz, setLeaderSubKz] = useState('');
+  const [leaderSubRu, setLeaderSubRu] = useState('');
+  const [leaderSubEn, setLeaderSubEn] = useState('');
+  const [leaderImageUrl, setLeaderImageUrl] = useState('');
+  const [leaderIconName, setLeaderIconName] = useState('CircleUser');
+  const [leaderColor, setLeaderColor] = useState('bg-blue-600');
+  const [leaderEmail, setLeaderEmail] = useState('');
+  const [leaderBioKz, setLeaderBioKz] = useState('');
+  const [leaderBioRu, setLeaderBioRu] = useState('');
+  const [leaderBioEn, setLeaderBioEn] = useState('');
+  
+  const [leaderSpec1LabelKz, setLeaderSpec1LabelKz] = useState('');
+  const [leaderSpec1LabelRu, setLeaderSpec1LabelRu] = useState('');
+  const [leaderSpec1LabelEn, setLeaderSpec1LabelEn] = useState('');
+  const [leaderSpec1Val, setLeaderSpec1Val] = useState('');
+  const [leaderSpec2LabelKz, setLeaderSpec2LabelKz] = useState('');
+  const [leaderSpec2LabelRu, setLeaderSpec2LabelRu] = useState('');
+  const [leaderSpec2LabelEn, setLeaderSpec2LabelEn] = useState('');
+  const [leaderSpec2Val, setLeaderSpec2Val] = useState('');
+
+  const [isAddingNewLeader, setIsAddingNewLeader] = useState(false);
+
+  // Contacts & About Company CMS Editing States
+  const [contAboutTitleKz, setContAboutTitleKz] = useState('');
+  const [contAboutTitleRu, setContAboutTitleRu] = useState('');
+  const [contAboutTitleEn, setContAboutTitleEn] = useState('');
+  const [contAboutSubtitleKz, setContAboutSubtitleKz] = useState('');
+  const [contAboutSubtitleRu, setContAboutSubtitleRu] = useState('');
+  const [contAboutSubtitleEn, setContAboutSubtitleEn] = useState('');
+  const [contAboutDescKz, setContAboutDescKz] = useState('');
+  const [contAboutDescRu, setContAboutDescRu] = useState('');
+  const [contAboutDescEn, setContAboutDescEn] = useState('');
+  
+  const [contStatVolKz, setContStatVolKz] = useState('');
+  const [contStatVolRu, setContStatVolRu] = useState('');
+  const [contStatVolEn, setContStatVolEn] = useState('');
+  const [contStatVolVal, setContStatVolVal] = useState('');
+
+  const [contStatTanksKz, setContStatTanksKz] = useState('');
+  const [contStatTanksRu, setContStatTanksRu] = useState('');
+  const [contStatTanksEn, setContStatTanksEn] = useState('');
+  const [contStatTanksVal, setContStatTanksVal] = useState('');
+
+  const [contStatLaunchKz, setContStatLaunchKz] = useState('');
+  const [contStatLaunchRu, setContStatLaunchRu] = useState('');
+  const [contStatLaunchEn, setContStatLaunchEn] = useState('');
+  const [contStatLaunchVal, setContStatLaunchVal] = useState('');
+
+  const [contStatDistKz, setContStatDistKz] = useState('');
+  const [contStatDistRu, setContStatDistRu] = useState('');
+  const [contStatDistEn, setContStatDistEn] = useState('');
+  const [contStatDistVal, setContStatDistVal] = useState('');
+
+  const [contAddressKz, setContAddressKz] = useState('');
+  const [contAddressRu, setContAddressRu] = useState('');
+  const [contAddressEn, setContAddressEn] = useState('');
+  
+  const [contPhone, setContPhone] = useState('');
+  const [contEmail, setContEmail] = useState('');
+
+  const [contHoursKz, setContHoursKz] = useState('');
+  const [contHoursRu, setContHoursRu] = useState('');
+  const [contHoursEn, setContHoursEn] = useState('');
+
+  React.useEffect(() => {
+    if (contactsState) {
+      setContAboutTitleKz(contactsState.aboutTitleKz || '');
+      setContAboutTitleRu(contactsState.aboutTitleRu || '');
+      setContAboutTitleEn(contactsState.aboutTitleEn || '');
+      setContAboutSubtitleKz(contactsState.aboutSubtitleKz || '');
+      setContAboutSubtitleRu(contactsState.aboutSubtitleRu || '');
+      setContAboutSubtitleEn(contactsState.aboutSubtitleEn || '');
+      setContAboutDescKz(contactsState.aboutDescKz || '');
+      setContAboutDescRu(contactsState.aboutDescRu || '');
+      setContAboutDescEn(contactsState.aboutDescEn || '');
+      
+      setContStatVolKz(contactsState.statVolKz || '');
+      setContStatVolRu(contactsState.statVolRu || '');
+      setContStatVolEn(contactsState.statVolEn || '');
+      setContStatVolVal(contactsState.statVolValue || '');
+
+      setContStatTanksKz(contactsState.statTanksKz || '');
+      setContStatTanksRu(contactsState.statTanksRu || '');
+      setContStatTanksEn(contactsState.statTanksEn || '');
+      setContStatTanksVal(contactsState.statTanksValue || '');
+
+      setContStatLaunchKz(contactsState.statLaunchKz || '');
+      setContStatLaunchRu(contactsState.statLaunchRu || '');
+      setContStatLaunchEn(contactsState.statLaunchEn || '');
+      setContStatLaunchVal(contactsState.statLaunchValue || '');
+
+      setContStatDistKz(contactsState.statDistKz || '');
+      setContStatDistRu(contactsState.statDistRu || '');
+      setContStatDistEn(contactsState.statDistEn || '');
+      setContStatDistVal(contactsState.statDistValue || '');
+
+      setContAddressKz(contactsState.addressValKz || '');
+      setContAddressRu(contactsState.addressValRu || '');
+      setContAddressEn(contactsState.addressValEn || '');
+      
+      setContPhone(contactsState.phone || '');
+      setContEmail(contactsState.email || '');
+
+      setContHoursKz(contactsState.hoursValKz || '');
+      setContHoursRu(contactsState.hoursValRu || '');
+      setContHoursEn(contactsState.hoursValEn || '');
+    }
+  }, [contactsState]);
 
   // Slideshow CMS list management states
   const [slides, setSlides] = useState<any[]>(() => {
@@ -288,7 +434,7 @@ export default function AdminPage() {
 
   const deleteSlide = (id: string) => {
     if (slides.length <= 1) {
-      alert(lang === 'kz' ? 'Жүйеде кем дегенде 1 слайд қалуы керек!' : 'В системе должен оставаться как минимум 1 слайд!');
+      safeAlert(lang === 'kz' ? 'Жүйеде кем дегенде 1 слайд қалуы керек!' : 'В системе должен оставаться как минимум 1 слайд!');
       return;
     }
     setSlides(slides.filter(s => s.id !== id));
@@ -386,7 +532,7 @@ export default function AdminPage() {
       });
       setIsSavingBanners(false);
       logUserAction(`Промо слайдер параметрлері мен жүйелік баннерлері сәтті жаңартылды`);
-      alert(lang === 'kz' ? 'Промо слайдер мәліметтері сәтті сақталды!' : lang === 'ru' ? 'Данные промо-слайдера успешно сохранены!' : 'Promo slider updated successfully!');
+      safeAlert(lang === 'kz' ? 'Промо слайдер мәліметтері сәтті сақталды!' : lang === 'ru' ? 'Данные промо-слайдера успешно сохранены!' : 'Promo slider updated successfully!');
     }, 600);
   };
 
@@ -621,643 +767,133 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className={hideHeaderAndTabs ? "w-full text-slate-800" : "min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8"}>
+      <div className={hideHeaderAndTabs ? "space-y-6 w-full" : "max-w-full mx-auto space-y-8"}>
         
         {/* Header Title with security badge and active profile */}
-        <div className="bg-slate-900 text-white rounded-[32px] p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden border border-slate-800">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -z-10" />
-          
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-amber-400 text-slate-900 text-[10px] font-black tracking-widest uppercase rounded-full font-mono flex items-center gap-1.5 shadow-sm">
-                <Shield className="w-3.5 h-3.5" />
-                SUPERADMIN CONTROL HUB
-              </span>
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Live Engine
-              </span>
+        {!hideHeaderAndTabs && (
+          <div className="bg-slate-900 text-white rounded-[32px] p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden border border-slate-800">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -z-10" />
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-amber-400 text-slate-900 text-[10px] font-black tracking-widest uppercase rounded-full font-mono flex items-center gap-1.5 shadow-sm">
+                  <Shield className="w-3.5 h-3.5" />
+                  SUPERADMIN CONTROL HUB
+                </span>
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Live Engine
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3.5xl font-black tracking-tight leading-tight">
+                Басқару Жүйесі & CMS Орталығы
+              </h1>
+              <p className="text-slate-400 text-xs sm:text-sm max-w-2xl font-light">
+                Порталдағы ақпаратты, басты беттің баннерлерін, жанар-жағармай бағаларын, ресми жанармай құю стансаларын (ЖҚС) және тіркелген пайдаланушылардың рұқсат деңгейлерін тікелей басқаруға арналған қауіпсіз интерфейс.
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3.5xl font-black tracking-tight leading-tight">
-              Басқару Жүйесі & CMS Орталығы
-            </h1>
-            <p className="text-slate-400 text-xs sm:text-sm max-w-2xl font-light">
-              Порталдағы ақпаратты, басты беттің баннерлерін, жанар-жағармай бағаларын, ресми жанармай құю стансаларын (ЖҚС) және тіркелген пайдаланушылардың рұқсат деңгейлерін тікелей басқаруға арналған қауіпсіз интерфейс.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-4 bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm uppercase shadow font-mono">
-              {currentUser?.username.substring(0, 2) || 'AD'}
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 block leading-none font-mono">Қосылған Админ</span>
-              <span className="text-xs font-bold text-slate-100 block">{currentUser?.fullName}</span>
-              <span className="text-[10px] text-slate-400 font-mono block mt-0.5">{currentUser?.email}</span>
+            <div className="flex items-center gap-4 bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm uppercase shadow font-mono">
+                {currentUser?.username.substring(0, 2) || 'AD'}
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-500 block leading-none font-mono">Қосылған Админ</span>
+                <span className="text-xs font-bold text-slate-100 block">{currentUser?.fullName}</span>
+                <span className="text-[10px] text-slate-400 font-mono block mt-0.5">{currentUser?.email}</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Navigation Admin Tabs */}
-        <div className="flex flex-wrap gap-2 pb-1 border-b border-slate-200">
-          <button
-            onClick={() => setActiveTab('banners')}
-            className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
-              activeTab === 'banners'
-                ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
-            }`}
-          >
-            <Image className="w-4 h-4" />
-            <span>Промо (Hero)</span>
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('prices')}
-            className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
-              activeTab === 'prices'
-                ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
-            }`}
-          >
-            <Coins className="w-4 h-4" />
-            <span>Бағаларды Басқару</span>
-          </button>
+        {!hideHeaderAndTabs && (
+          <div className="flex flex-wrap gap-2 pb-1 border-b border-slate-200">
+            <button
+              onClick={() => setActiveTab('banners')}
+              className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
+                activeTab === 'banners'
+                  ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+              }`}
+            >
+              <Image className="w-4 h-4" />
+              <span>Контент (CMS)</span>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('prices')}
+              className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
+                activeTab === 'prices'
+                  ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+              }`}
+            >
+              <Coins className="w-4 h-4" />
+              <span>Бағаларды Басқару</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('stations')}
-            className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
-              activeTab === 'stations'
-                ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
-            }`}
-          >
-            <MapPin className="w-4 h-4" />
-            <span>ЖҚС Бекеттері</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('stations')}
+              className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
+                activeTab === 'stations'
+                  ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+              }`}
+            >
+              <MapPin className="w-4 h-4" />
+              <span>ЖҚС Бекеттері</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('tanks')}
-            className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
-              activeTab === 'tanks'
-                ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
-            }`}
-          >
-            <Database className="w-4 h-4" />
-            <span>Резервуарларды Басқару</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('tanks')}
+              className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
+                activeTab === 'tanks'
+                  ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+              }`}
+            >
+              <Database className="w-4 h-4" />
+              <span>Резервуарларды Басқару</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
-              activeTab === 'users'
-                ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Пайдаланушылар рұқсаты</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
+                activeTab === 'users'
+                  ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Пайдаланушылар рұқсаты</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('logs')}
-            className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
-              activeTab === 'logs'
-                ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>Аудит Журналы (Audit Logs)</span>
-            <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-md font-mono">
-              {auditLogs.length}
-            </span>
-          </button>
-        </div>
+            <button
+              onClick={() => setActiveTab('logs')}
+              className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-t-2 transition-all cursor-pointer ${
+                activeTab === 'logs'
+                  ? 'bg-white border-blue-600 text-blue-700 font-black shadow-sm'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>Аудит Журналы (Audit Logs)</span>
+              <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-md font-mono">
+                {auditLogs.length}
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* Main Workspace Frame container */}
-        <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-6 sm:p-8 min-h-[500px]">
+        <div className={hideHeaderAndTabs ? "w-full" : "bg-white rounded-[28px] border border-slate-200 shadow-sm p-6 sm:p-8 min-h-[500px]"}>
           
-          {/* TAB 1: BANNERS & MAIN SCREEN INFO */}
+          {/* TAB 1: CONTENT CMS (BANNERS, LEADERS, CONTACTS) */}
           {activeTab === 'banners' && (
-            <div className="space-y-8 animate-fade-in text-left">
-              
-              {/* Header Action Row */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
-                <div>
-                  <h3 className="text-xl font-black text-slate-900 font-sans tracking-tight">Промо-слайдер және Басты Бетті Басқару (CMS)</h3>
-                  <p className="text-xs text-slate-500 mt-1">Басты беттің жоғарғы жағындағы интерактивті жарнамалық слайдердің мәтіндерін, батырмаларын және дизайнын баптау.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSaveBanners}
-                  disabled={isSavingBanners}
-                  className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-500/10 flex items-center justify-center gap-1.5 transition cursor-pointer"
-                >
-                  {isSavingBanners ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  <span>{isSavingBanners ? 'Сақталуда...' : 'Жалпы Өзгерістерді Сақтау'}</span>
-                </button>
-              </div>
-
-              {/* SECTION 1: GLOBAL CONFIGURATION */}
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 space-y-4">
-                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block font-sans">1. Слайдердің Жалпы Настройкасы (Global Options)</span>
-                
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1">
-                  {/* Autoplay toggler */}
-                  <div className="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-700 block">Автоматты ауысу</label>
-                      <span className="text-[9px] text-slate-400">Слайдтар автоматты өзгереді</span>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={sliderAutoplay}
-                      onChange={(e) => setSliderAutoplay(e.target.checked)}
-                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Autoplay speed */}
-                  <div className="bg-white p-3 rounded-xl border border-slate-200/80">
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Ауысу секундтары</label>
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="number"
-                        min={2}
-                        max={30}
-                        value={sliderAutoplaySpeed}
-                        onChange={(e) => setSliderAutoplaySpeed(Number(e.target.value))}
-                        disabled={!sliderAutoplay}
-                        className="w-full px-2 py-1 rounded border border-slate-200 text-xs font-bold text-slate-900 disabled:bg-slate-100"
-                      />
-                      <span className="text-[10px] text-slate-400 font-mono">сек</span>
-                    </div>
-                  </div>
-
-                  {/* Show Indicators */}
-                  <div className="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-700 block">Нүкте индикаторлары</label>
-                      <span className="text-[9px] text-slate-400">Төменде нүктелерді көрсету</span>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={sliderShowIndicators}
-                      onChange={(e) => setSliderShowIndicators(e.target.checked)}
-                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Show Arrows */}
-                  <div className="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-700 block">Бағыттауыштар</label>
-                      <span className="text-[9px] text-slate-400">Екі шеттегі стрелкалар</span>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={sliderShowArrows}
-                      onChange={(e) => setSliderShowArrows(e.target.checked)}
-                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION 2: SLIDES LIST */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block font-sans">2. Слайдтар Тізімі (Slides Master)</span>
-                  <button
-                    type="button"
-                    onClick={startAddingSlide}
-                    className="flex items-center gap-1.5 px-4.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Жаңа Промо-Слайд Қосу</span>
-                  </button>
-                </div>
-
-                {/* Grid of slides */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {slides.map((slide, index) => {
-                    const isSlideEditing = editingSlideId === slide.id;
-                    return (
-                      <div 
-                        key={slide.id} 
-                        className={`p-4 rounded-2xl border transition flex flex-col justify-between space-y-4 ${
-                          isSlideEditing 
-                            ? 'border-blue-500 bg-blue-50/20 ring-2 ring-blue-500/20' 
-                            : 'border-slate-200 bg-white hover:border-slate-350'
-                        }`}
-                      >
-                        {/* Slide Top Preview Banner */}
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-bold text-slate-400 font-mono">#{index + 1}</span>
-                              <span className={`px-2 py-0.5 text-[8px] uppercase font-black rounded-md ${
-                                slide.isActive !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
-                              }`}>
-                                {slide.isActive !== false ? 'Белсенді' : 'Черновик'}
-                              </span>
-                            </div>
-                            
-                            {/* Slide Navigation controls */}
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                disabled={index === 0}
-                                onClick={() => moveSlide(index, 'up')}
-                                className="p-1 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-40"
-                                title="Жоғары жылжыту"
-                              >
-                                <ArrowUp className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                disabled={index === slides.length - 1}
-                                onClick={() => moveSlide(index, 'down')}
-                                className="p-1 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-40"
-                                title="Төмен жылжыту"
-                              >
-                                <ArrowDown className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Visual representation of background */}
-                          <div 
-                            className={`h-24 rounded-lg overflow-hidden border border-slate-200 relative flex items-center justify-center p-3 text-center ${
-                              slide.bgType === 'gradient' ? `bg-gradient-to-br ${slide.bgGradient}` : ''
-                            }`}
-                            style={slide.bgType === 'image' ? { backgroundImage: `url('${slide.bgImage}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
-                          >
-                            <div className="absolute inset-0 bg-slate-950/50 z-0" />
-                            <div className="relative z-10 text-white">
-                              <h4 className="text-[11px] font-black line-clamp-1 leading-tight">{slide.titleKz || 'Мәтін енгізілмеген'}</h4>
-                              <p className="text-[8px] text-slate-300 line-clamp-1 mt-1">{slide.descKz || 'Сипаттамасыз'}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Slide footer settings info */}
-                        <div className="space-y-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500">
-                          <div className="flex justify-between">
-                            <span>Background:</span>
-                            <span className="font-bold text-slate-700 capitalize">{slide.bgType === 'gradient' ? 'Градиент' : 'Сурет'}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Бағыттау сілтемесі:</span>
-                            <span className="font-mono font-semibold text-blue-600 truncate max-w-[130px]">{slide.buttonLink || 'Жоқ'}</span>
-                          </div>
-                        </div>
-
-                        {/* Action buttons */}
-                        <div className="flex gap-2 pt-2">
-                          <button
-                            type="button"
-                            onClick={() => startEditingSlide(slide)}
-                            className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-[10px] rounded-lg transition"
-                          >
-                            Өзгерту
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => deleteSlide(slide.id)}
-                            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition"
-                            title="Слайдты жою"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* SECTION 3: SLIDE EDITOR (IF SELECTED OR ADDING) */}
-              {(editingSlideId !== null || isAddingNewSlide) && (
-                <div className="bg-white p-6 rounded-2xl border-2 border-blue-500 space-y-6 animate-slide-up text-slate-800">
-                  <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-blue-500" />
-                      <span className="font-black text-sm text-slate-900">
-                        {isAddingNewSlide ? 'Жаңа Слайд Құрастыру' : 'Слайд Баптауларын Өзгерту'}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingSlideId(null);
-                        setIsAddingNewSlide(false);
-                      }}
-                      className="text-xs text-slate-400 hover:text-slate-600"
-                    >
-                      Жабу
-                    </button>
-                  </div>
-
-                  {/* Form fields */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
-                    {/* Background & Styling card */}
-                    <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                      <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Дизайн және Фон</span>
-                      
-                      {/* Background Type */}
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-700 block">Фон түрі (Background Type)</label>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setSlideBgType('image')}
-                            className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition ${
-                              slideBgType === 'image' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200'
-                            }`}
-                          >
-                            Мұқаба суреті (Image)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSlideBgType('gradient')}
-                            className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition ${
-                              slideBgType === 'gradient' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200'
-                            }`}
-                          >
-                            Градиент фон (Gradient)
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Conditional BG Value */}
-                      {slideBgType === 'image' ? (
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-600 block">Суреттің URL сілтемесі:</label>
-                          <input
-                            type="text"
-                            value={slideBgImage}
-                            onChange={(e) => setSlideBgImage(e.target.value)}
-                            placeholder="https://images.unsplash.com/photo-..."
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono"
-                          />
-                          {/* Image presets */}
-                          <div className="flex gap-1.5 flex-wrap">
-                            {[
-                              { l: 'Refinery', u: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80' },
-                              { l: 'Oil Rig', u: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?auto=format&fit=crop&w=800&q=80' },
-                              { l: 'Depot Logistics', u: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=800&q=80' }
-                            ].map(preset => (
-                              <button
-                                type="button"
-                                key={preset.l}
-                                onClick={() => setSlideBgImage(preset.u)}
-                                className="px-2 py-0.5 bg-white border border-slate-200 hover:bg-slate-100 rounded text-[9px]"
-                              >
-                                {preset.l}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-600 block font-sans">Tailwind Градиент баптауы:</label>
-                          <select
-                            value={slideBgGradient}
-                            onChange={(e) => setSlideBgGradient(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs"
-                          >
-                            <option value="from-blue-950 via-slate-900 to-indigo-950">Deep Indigo Navy</option>
-                            <option value="from-[#0b132b] via-[#1c2541] to-[#3a506b]">Space Dark Blue</option>
-                            <option value="from-amber-950 via-slate-950 to-blue-950">Sunset Petroleum Glow</option>
-                            <option value="from-slate-900 to-slate-950">Dark Minimal Slate</option>
-                            <option value="from-emerald-950 via-slate-900 to-blue-950">Forest Emerald Gas</option>
-                          </select>
-                          <input
-                            type="text"
-                            value={slideBgGradient}
-                            onChange={(e) => setSlideBgGradient(e.target.value)}
-                            placeholder="from-blue-900 to-slate-950"
-                            className="w-full px-3 py-1 bg-white border border-slate-200 text-[10px] rounded font-mono"
-                          />
-                        </div>
-                      )}
-
-                      {/* Dark overlay opacity slider */}
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[11px] font-bold text-slate-700">
-                          <span>Күңгірттеу деңгейі (Overlay Opacity):</span>
-                          <span className="font-mono text-blue-600">{Math.round(slideOverlayOpacity * 100)}%</span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0.1"
-                          max="0.95"
-                          step="0.05"
-                          value={slideOverlayOpacity}
-                          onChange={(e) => setSlideOverlayOpacity(Number(e.target.value))}
-                          className="w-full"
-                        />
-                        <span className="text-[8px] text-slate-400 block mt-0.5">Мәтіннің жақсы оқылуы үшін суреттің бетіне қойылатын қара түстің деңгейі.</span>
-                      </div>
-
-                      {/* Text Alignment */}
-                      <div className="space-y-1.5 pt-1">
-                        <label className="text-[11px] font-bold text-slate-700 block">Мәтінді туралау (Alignment):</label>
-                        <div className="flex gap-2">
-                          {(['left', 'center', 'right'] as const).map(align => (
-                            <button
-                              type="button"
-                              key={align}
-                              onClick={() => setSlideTextAlign(align)}
-                              className={`flex-1 py-1 text-xs font-bold rounded-lg border transition capitalize ${
-                                slideTextAlign === align ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200'
-                              }`}
-                            >
-                              {align === 'left' ? 'Сол жаққа' : align === 'center' ? 'Ортаға' : 'Оң жаққа'}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Active Toggle */}
-                      <div className="pt-2 flex items-center justify-between border-t border-slate-200/50">
-                        <label className="text-[11px] font-bold text-slate-700">Слайд белсенді күйде болсын:</label>
-                        <input
-                          type="checkbox"
-                          checked={slideIsActive}
-                          onChange={(e) => setSlideIsActive(e.target.checked)}
-                          className="w-4 h-4 rounded text-blue-600"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Action Button & Link settings */}
-                    <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                      <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Әрекет Батырмасы (Call To Action Button)</span>
-                      
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-slate-750 block">Батырма мәтіні (Қазақша)</label>
-                        <input
-                          type="text"
-                          value={slideButtonTextKz}
-                          onChange={(e) => setSlideButtonTextKz(e.target.value)}
-                          placeholder="Мысалы: Бағаларды Көру"
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-slate-750 block">Текст кнопки (Русский)</label>
-                        <input
-                          type="text"
-                          value={slideButtonTextRu}
-                          onChange={(e) => setSlideButtonTextRu(e.target.value)}
-                          placeholder="Например: Посмотреть Цены"
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-slate-750 block">Button Text (English)</label>
-                        <input
-                          type="text"
-                          value={slideButtonTextEn}
-                          onChange={(e) => setSlideButtonTextEn(e.target.value)}
-                          placeholder="Example: View Prices"
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs"
-                        />
-                      </div>
-
-                      <div className="space-y-2 pt-1 border-t border-slate-200/50">
-                        <label className="text-[11px] font-bold text-slate-700 block">Батырма басқанда қайда бағыттайды (Button Link):</label>
-                        <select
-                          value={slideButtonLink}
-                          onChange={(e) => setSlideButtonLink(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs"
-                        >
-                          <option value="/prices">Тарифтер & Бағалар (/prices)</option>
-                          <option value="/stations">Жанармай Станциялары (/stations)</option>
-                          <option value="/tanks">Резервуар Паркі (/tanks)</option>
-                          <option value="/">Басты Бет (/)</option>
-                        </select>
-                        <input
-                          type="text"
-                          value={slideButtonLink}
-                          onChange={(e) => setSlideButtonLink(e.target.value)}
-                          placeholder="Немесе баламалы сілтеме"
-                          className="w-full px-3 py-1.5 bg-white border border-slate-200 text-xs rounded font-mono"
-                        />
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* Multilingual Text Content settings inside Slider editor */}
-                  <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Слайд Мәтіндерін Өңдеу (KZ / RU / EN)</span>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      
-                      {/* KZ Lang Block */}
-                      <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-150">
-                        <span className="text-[9px] uppercase font-black text-amber-600 block">Kazakh / Қазақша</span>
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-slate-500 block">Басты тақырыбы (Title):</label>
-                          <textarea
-                            rows={2}
-                            value={slideTitleKz}
-                            onChange={(e) => setSlideTitleKz(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-xs font-bold leading-tight"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-slate-500 block">Сипаттамасы (Description):</label>
-                          <textarea
-                            rows={3}
-                            value={slideDescKz}
-                            onChange={(e) => setSlideDescKz(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-xs leading-relaxed"
-                          />
-                        </div>
-                      </div>
-
-                      {/* RU Lang Block */}
-                      <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-150">
-                        <span className="text-[9px] uppercase font-black text-blue-600 block">Russian / Русский</span>
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-slate-500 block">Заголовок (Title):</label>
-                          <textarea
-                            rows={2}
-                            value={slideTitleRu}
-                            onChange={(e) => setSlideTitleRu(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-xs font-bold leading-tight"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-slate-500 block">Описание (Description):</label>
-                          <textarea
-                            rows={3}
-                            value={slideDescRu}
-                            onChange={(e) => setSlideDescRu(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-xs leading-relaxed"
-                          />
-                        </div>
-                      </div>
-
-                      {/* EN Lang Block */}
-                      <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-150">
-                        <span className="text-[9px] uppercase font-black text-indigo-600 block">English / Ағылшынша</span>
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-slate-500 block">Title:</label>
-                          <textarea
-                            rows={2}
-                            value={slideTitleEn}
-                            onChange={(e) => setSlideTitleEn(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-xs font-bold leading-tight"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-slate-500 block">Description:</label>
-                          <textarea
-                            rows={3}
-                            value={slideDescEn}
-                            onChange={(e) => setSlideDescEn(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded bg-white border border-slate-200 text-xs leading-relaxed"
-                          />
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-
-                  {/* Actions for local slide modifications */}
-                  <div className="flex justify-end gap-3 pt-3 border-t border-slate-150">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingSlideId(null);
-                        setIsAddingNewSlide(false);
-                      }}
-                      className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
-                    >
-                      Қайтару (Cancel)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={saveSlideChanges}
-                      className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1"
-                    >
-                      <Check className="w-4 h-4" />
-                      <span>{isAddingNewSlide ? 'Тізімге Қосу' : 'Слайдты Сақтау'}</span>
-                    </button>
-                  </div>
-
-                </div>
-              )}
-
+            <div className="animate-fade-in">
+              <CmsManagementPanel />
             </div>
           )}
 
@@ -2080,11 +1716,11 @@ export default function AdminPage() {
                     <button
                       onClick={() => {
                         if (!newAdmId || !newAdmFuel) {
-                          alert("Толтырылмаған жолақтар бар (ID мен отын түрі міндетті)!");
+                          safeAlert("Толтырылмаған жолақтар бар (ID мен отын түрі міндетті)!");
                           return;
                         }
                         addTank(newAdmId, newAdmFuel, newAdmVolume, newAdmCapacity);
-                        alert(`Резервуар ${newAdmId} сәтті тіркелді!`);
+                        safeAlert(`Резервуар ${newAdmId} сәтті тіркелді!`);
                         setNewAdmId('');
                         setNewAdmFuel('');
                         setNewAdmVolume(0);
@@ -2200,7 +1836,7 @@ export default function AdminPage() {
                               capacity: editAdmCapacity
                             });
                             updateWaterLevel(selectedAdmTankId, editAdmWater);
-                            alert(`Калибрлеу параметрлері ${selectedAdmTankId} үшін сәтті сақталды!`);
+                            safeAlert(`Калибрлеу параметрлері ${selectedAdmTankId} үшін сәтті сақталды!`);
                           }}
                           className="px-4.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold flex items-center gap-1.5 shadow-md shadow-blue-500/10 cursor-pointer ml-auto"
                         >
@@ -2359,7 +1995,7 @@ export default function AdminPage() {
                     <button
                       onClick={() => {
                         if (!newUFullName || !newUName || !newUEmail) {
-                          alert("Толық ФИО, Логин мен Пошта жолақтарын толтырыңыз!");
+                          safeAlert("Толық ФИО, Логин мен Пошта жолақтарын толтырыңыз!");
                           return;
                         }
                         const u: any = {
@@ -2372,7 +2008,7 @@ export default function AdminPage() {
                           allowedTanks: newUAllowedTanks
                         };
                         addUser(u);
-                        alert(`Пайдаланушы @${newUName} жүйеге сәтті қосылды!`);
+                        safeAlert(`Пайдаланушы @${newUName} жүйеге сәтті қосылды!`);
                         setNewUFullName('');
                         setNewUName('');
                         setNewUEmail('');

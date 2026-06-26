@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, Mail, Shield, Bell, Lock, Camera, Check, AlertCircle, 
   FileText, Settings, Key, Clock, Eye, EyeOff, Edit2, 
-  Download, Trash2, Calendar, ChevronRight, X
+  Download, Trash2, Calendar, ChevronRight, X,
+  Image, Coins, MapPin, Database, Users
 } from 'lucide-react';
 import { useAppContext } from '../contexts/AppContext';
 import AdminPage from './AdminPage';
@@ -18,8 +19,8 @@ export default function ProfilePage() {
     t
   } = useAppContext();
 
-  // Active section inside profile: 'info' | 'logs' | 'admin'
-  const [activeSection, setActiveSection] = useState<'info' | 'logs' | 'admin'>('info');
+  // Active section inside profile: 'info' | 'logs' | 'admin_banners' | 'admin_prices' | 'admin_stations' | 'admin_tanks' | 'admin_users' | 'admin_logs'
+  const [activeSection, setActiveSection] = useState<string>('info');
 
   // Personal info state
   const [isEditingInfo, setIsEditingInfo] = useState(false);
@@ -256,7 +257,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className={`flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in text-slate-800 ${activeSection === 'admin' ? 'max-w-full' : 'max-w-7xl'}`}>
+    <div className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in text-slate-800 max-w-full">
       
       {/* Title & Header */}
       <div className="space-y-2 text-left">
@@ -387,20 +388,104 @@ export default function ProfilePage() {
             </button>
 
             {role === 'admin' && (
-              <button
-                onClick={() => setActiveSection('admin')}
-                className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition cursor-pointer ${
-                  activeSection === 'admin' 
-                    ? 'bg-gradient-to-r from-indigo-650 to-blue-600 text-white shadow-md shadow-indigo-200/10' 
-                    : 'text-indigo-600 hover:bg-indigo-50/50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Shield className="w-4 h-4 animate-pulse text-current" />
-                  <span className="font-extrabold">{currentLoc.section_admin}</span>
+              <>
+                <div className="pt-3 pb-1 px-3 border-t border-slate-100">
+                  <span className="text-[10px] uppercase tracking-widest font-black text-slate-400 font-mono flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
+                    Басқару Орталығы (CMS)
+                  </span>
                 </div>
-                <ChevronRight className={`w-4 h-4 opacity-70 ${activeSection === 'admin' ? 'rotate-90' : ''} transition-transform`} />
-              </button>
+
+                <button
+                  onClick={() => setActiveSection('admin_banners')}
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                    activeSection === 'admin_banners' 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Image className="w-4 h-4" />
+                    <span>Контент</span>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 opacity-70 ${activeSection === 'admin_banners' ? 'rotate-90' : ''} transition-transform`} />
+                </button>
+
+                <button
+                  onClick={() => setActiveSection('admin_prices')}
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                    activeSection === 'admin_prices' 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Coins className="w-4 h-4" />
+                    <span>Бағаларды Басқару</span>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 opacity-70 ${activeSection === 'admin_prices' ? 'rotate-90' : ''} transition-transform`} />
+                </button>
+
+                <button
+                  onClick={() => setActiveSection('admin_stations')}
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                    activeSection === 'admin_stations' 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <MapPin className="w-4 h-4" />
+                    <span>ЖҚС Бекеттері</span>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 opacity-70 ${activeSection === 'admin_stations' ? 'rotate-90' : ''} transition-transform`} />
+                </button>
+
+                <button
+                  onClick={() => setActiveSection('admin_tanks')}
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                    activeSection === 'admin_tanks' 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Database className="w-4 h-4" />
+                    <span>Резервуарларды Басқару</span>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 opacity-70 ${activeSection === 'admin_tanks' ? 'rotate-90' : ''} transition-transform`} />
+                </button>
+
+                <button
+                  onClick={() => setActiveSection('admin_users')}
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                    activeSection === 'admin_users' 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Users className="w-4 h-4" />
+                    <span>Пайдаланушылар рұқсаты</span>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 opacity-70 ${activeSection === 'admin_users' ? 'rotate-90' : ''} transition-transform`} />
+                </button>
+
+                <button
+                  onClick={() => setActiveSection('admin_logs')}
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition cursor-pointer ${
+                    activeSection === 'admin_logs' 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FileText className="w-4 h-4" />
+                    <span>Аудит Журналы</span>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 opacity-70 ${activeSection === 'admin_logs' ? 'rotate-90' : ''} transition-transform`} />
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -746,9 +831,9 @@ export default function ProfilePage() {
             )}
 
             {/* 3. NESTED ADMIN POWERED CONTROL MODULE */}
-            {activeSection === 'admin' && role === 'admin' && (
+            {activeSection.startsWith('admin_') && role === 'admin' && (
               <motion.div
-                key="admin"
+                key={activeSection}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
@@ -764,7 +849,7 @@ export default function ProfilePage() {
                   <div className="space-y-1 text-left mb-6 pt-2">
                     <h2 className="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-800 to-blue-700 tracking-tight flex items-center gap-2">
                       <Shield className="w-5.5 h-5.5 text-indigo-600 animate-pulse" />
-                      Басқару Орталығы (Full-Width System Workspace)
+                      Басқару Орталығы (CMS)
                     </h2>
                     <p className="text-[11px] text-slate-500">
                       Мұнай базаларын, резервуар сыйымдылығы мен деңгейін және баға индексін толық басқаруға арналған ресми әкімшілік интерфейс.
@@ -772,7 +857,17 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="overflow-x-auto w-full">
-                    <AdminPage />
+                    <AdminPage 
+                      activeTabOverride={
+                        activeSection === 'admin_banners' ? 'banners' :
+                        activeSection === 'admin_prices' ? 'prices' :
+                        activeSection === 'admin_stations' ? 'stations' :
+                        activeSection === 'admin_tanks' ? 'tanks' :
+                        activeSection === 'admin_users' ? 'users' :
+                        'logs'
+                      }
+                      hideHeaderAndTabs={true}
+                    />
                   </div>
                 </div>
               </motion.div>

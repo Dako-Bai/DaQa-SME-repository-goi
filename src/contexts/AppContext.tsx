@@ -99,7 +99,8 @@ interface AppContextType {
   
   // News Custom management
   news: NewsItem[];
-  addNewsItem: (item: Omit<NewsItem, 'id' | 'date'>) => void;
+  addNewsItem: (item: Omit<NewsItem, 'id'> & { date?: string }) => void;
+  updateNewsItem: (id: string, updates: Partial<NewsItem>) => void;
   deleteNewsItem: (id: string) => void;
 
   // Calculational Commercial Offers Archive (Есептеулер архиві)
@@ -176,6 +177,12 @@ interface AppContextType {
   addManagedPrice: (price: Omit<ManagedPrice, 'id'>) => void;
   updateManagedPrice: (id: string, updates: Partial<ManagedPrice>) => void;
   deleteManagedPrice: (id: string) => void;
+
+  // Editable Leaders & Contacts
+  leadersList: any[];
+  updateLeadersList: (list: any[]) => void;
+  contactsState: any;
+  updateContactsState: (updates: any) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -388,6 +395,168 @@ const defaultManagedPrices: ManagedPrice[] = [
   }
 ];
 
+const defaultLeaders = [
+  {
+    id: 'leader_0',
+    name: {
+      kz: 'Ахметжанов Мақсат Аканович',
+      ru: 'Ахметжанов Мақсат Аканович',
+      en: 'Maksat Akanovich Akhmetzhanov'
+    },
+    title: {
+      kz: '«Mercury Energy» ЖШС Бас директоры',
+      ru: 'Генеральный директор ТОО «Mercury Energy»',
+      en: 'General Director of Mercury Energy LLP'
+    },
+    sub: {
+      kz: 'Бас директор (CEO) • PhD • Академик',
+      ru: 'Генеральный директор • PhD • Академик',
+      en: 'Chief Executive Officer (CEO) • PhD'
+    },
+    imageUrl: '/src/assets/images/leader_maksat_1781524570334.jpg',
+    iconName: 'CircleUser',
+    color: 'bg-blue-600',
+    email: 'm.akhmetzhanov@mercuryenergy.kz',
+    specs: [
+      { label: { kz: 'Еңбектер', ru: 'Труды', en: 'Works' }, value: '30+' },
+      { label: { kz: 'Scopus', ru: 'Scopus', en: 'Scopus' }, value: '12' }
+    ],
+    bio: {
+      kz: 'Ахметжанов Мақсат Ақанұлы – басқару саласында бай тәжірибесі бар жетекші. Ол ҚР Ғылым және жоғары білім министрлігі Ғылым комитетінің «Ақпараттық және есептеуіш технологиялар институты» РМК Бас директорының орынбасары лауазымдарын атқарған. Жобаларды басқаруда кең ауқымды сараптамаға ие. Мақсат Ақанұлы 2011 жылы әл-Фараби атындағы Қазақ ұлттық университетін бакалавриат, 2013 жылы жаратылыстану ғылымдарының магистрі дәрежесімен бітірген. 2016 жылы Математикалық және компьютерлік модельдеу мамандығы бойынша PhD докторы дәрежесін алды. Халықаралық ақпараттандыру академиясының академигі. 30-дан астам ғылыми еңбектердің авторы, оның ішінде 12-сі Scopus және 7-уі Web of Science негізінде жасалған мақалалар, сондай-ақ 10 авторлық куәлік пен пайдалы модельге 1 патент иегері.',
+      ru: 'Ахметжанов Максат Аканович – руководитель с богатым опытом управления. Ранее занимал должность заместителя генерального директора РГП «Институт информационных и вычислительных технологий» Комитета науки Министерства науки и высшего образования РК. Обладает широкой экспертизой в управлении комплексными проектами. Окончил Казахский национальный университет имени аль-Фараби (бакалавриат в 2011 г., магистратура естественных наук в 2013 г.). В 2016 г. получил степень доктора PhD по специальности «Математическое и компьютерное моделирование». Академик Международной академии информатизации. Автор более 30 научных трудов (включая 12 статей в Scopus, 7 статей в Web of Science, 10 авторских свидетельств и 1 патент на полезную модель).',
+      en: 'Maksat Akanovich Ahmetzhanov is an executive with extensive experience in corporate governance. He previously served as the Deputy Director General of the \'Institute of Information and Computing Technologies\' under the Committee of Science of the Ministry of Science and Higher Education of Republic of Kazakhstan. He holds deep expertise in project execution. Maksat Akanovich Ahmetzhanov graduated from Al-Farabi Kazakh National University with a bachelor\'s degree in 2011 and received his Master of Natural Sciences in 2013. In 2016, he earned his PhD in Mathematical and Computer Modeling. He is an academician of the International Academy of Informatization and has published over 30 scientific works, including 12 Scopus-indexed and 7 Web of Science articles, alongside 10 author\'s certificates and 1 utility model patent.'
+    }
+  },
+  {
+    id: 'leader_1',
+    name: {
+      kz: 'Тәжібаев Талғат',
+      ru: 'Тажибаев Талгат',
+      en: 'Tazhibaev Talgat'
+    },
+    title: {
+      kz: 'Қауіпті мұнай өнімдерін қорғау бөлімінің басшысы',
+      ru: 'Технический директор по контролю качества',
+      en: 'Head of Hazardous Petroleum Products Protection'
+    },
+    sub: {
+      kz: '«Құрметті Авиатор» • JIG Сарапшысы',
+      ru: '«Почетный авиатор» • Эксперт JIG-2',
+      en: 'Honored Aviator • JIG Auditor'
+    },
+    imageUrl: '/src/assets/images/leader_talgat_1781524593365.jpg',
+    iconName: 'Award',
+    color: 'bg-amber-550',
+    email: 't.tazhibaev@mercuryenergy.kz',
+    specs: [
+      { label: { kz: 'Тәжірибесі', ru: 'Стаж', en: 'Practice' }, value: '20+ жыл' },
+      { label: { kz: 'Сертификат', ru: 'Сертификат', en: 'Cert' }, value: 'JIG-2 / SKY' }
+    ],
+    bio: {
+      kz: 'Тәжібаев Талғат Тағыбергенұлы Бас инженер лауазымын атқарады, ол авиациялық отынмен қамтамасыз ету саласында 20 жылдан астам тәжірибесі бар білікті маман. Кәсіби жолы Қазақстанның Атырау, Ақтөбе және Астана сияқты ең ірі әуежайларындағы жанар-жағармай құю кешендерін басқаруды қамтиды. Салағы көпжылдық еңбек барысында Талғат Тағыбергенұлы азаматтық авиацияны отынмен қамтамасыз етуді ұйымдастыру, авиаотынды үздіксіз жеткізу, сапалы бақылау және әуе кемелерін құю саласындағы халықаралық стандарттарды қамтамасыз ету бойынша бірегей тәжірибе жинақтады. Талғат Тағыбергенұлы үнемі біліктілігін арттырып, түрлі тренингтерден өтеді, соның ішінде 2024 жылғы 9 желтоқсанда Астанада JIG инспекторларымен және SKYHANSA-мен бірлесіп ұйымдастырылған авиаотынды пайдалану жөніндегі семинар бар. Оның еңбегі мемлекеттік деңгейде атап өтіліп, «Құрметті авиатор» құрметті атағымен марапатталды, бұл оның елдің авиациялық саласын дамытуға қосқан зор үлесін растайды.',
+      ru: 'Тажибаев Талгат Тагибергенович занимает должность Главного инженера. Он является высококлассным техническим специалистом в сфере авиатопливообеспечения с опытом работы более 20 лет. Его карьерный путь включает руководство топливно-заправочными комплексами в крупнейших аэропортах Казахстана (Атырау, Актобе и Астана). Имеет уникальный опыт заправки воздушных судов гражданской авиации, бесперебойного снабжения авиатопливом, контроля качества и обеспечения жестких международных требований Joint Inspection Group. Регулярно проходит профессиональные стажировки, включая обучение с международными инспекторами JIG и SKYHANSA в декабре 2024 года. За значительный вклад в развитие отечественной авиационной инженерии награжден почетным государственным званием «Құрметті авиатор».',
+      en: 'Talgat Tagibergenovich serves as the Chief Engineer and Head of Hazardous Petroleum Products Protection, presenting over 20 years of technical expertise in aviation fueling systems. His professional trajectory includes managerial leadership of fuel-refueling complexes at Kazakhstan\'s premier airports, including Atyrau, Aktobe, and Astana. Throughout his distinguished tenure, Talgat Tagibergenovich has specialized in strategic airport logistics, quality control metrics, and absolute compliance with international aircraft refueling regulations. He consistently improves his technical credentials, notably participating in joint seminars with JIG auditors and SKYHANSA in Astana. Confirming his outstanding industry footprint, he was honored with the governmental title \'Kurmetti Aviator\' (Honored Aviator).'
+    }
+  },
+  {
+    id: 'leader_2',
+    name: {
+      kz: 'Шашкова Вера',
+      ru: 'Шашкова Вера',
+      en: 'Shashkova Vera'
+    },
+    title: {
+      kz: 'Зертхана меңгерушісі',
+      ru: 'Руководитель испытательной лаборатории топлива',
+      en: 'Head of the Quality Control Laboratory'
+    },
+    sub: {
+      kz: 'Республикалық комиссия мүшесі',
+      ru: 'Член Республиканской комиссии по авиатопливу',
+      en: 'National Commission Member • Expert'
+    },
+    imageUrl: '/src/assets/images/leader_vera_1781524613441.jpg',
+    iconName: 'FlaskConical',
+    color: 'bg-emerald-600',
+    email: 'v.shashkova@mercuryenergy.kz',
+    specs: [
+      { label: { kz: 'Салалық өтілі', ru: 'Профстаж', en: 'Lab Operations' }, value: '20+ жыл' },
+      { label: { kz: 'Мәртебесі', ru: 'Респ. комиссия', en: 'Federal Status' }, value: 'Ақпараттық' }
+    ],
+    bio: {
+      kz: 'Шашкова Вера Алексеевнаның авиаотын саласында 20 жылдық жұмыс өтілі бар. Астана халықаралық әуежайында зертхана меңгерушісі болып жұмыс істеген. Азаматтық авиацияда үлкен тәжірибесі бар. Вера Алексеевна Авиациялық отын бойынша республикалық комиссияның мүшесі болып табылады. Вера Алексеевна Шашкова үнемі біліктілігін арттырып, түрлі тренингтерден өтеді, соның ішінде 2024 жылғы 9 желтоқсанда Астанада JIG инспекторларымен және SKYHANSA-мен бірлесіп ұйымдастырылған авиаотынды пайдалану жөніндегі семинар бар.',
+      ru: 'Шашкова Вера Алексеевна имеет более 20 лет стажа в авиационной химико-технологической отрасли. Возглавляла испытательную лабораторию Международного аэропорта Астаны. Обладает глубоким практическим опытом контроля соответствия нефтепродуктов в гражданской авиации. Является действующим членом Республиканской комиссии по авиационному топливу. Регулярно совершенствует навыки технической экспертизы, включая участие в сертифицированных JIG и SKYHANSA семинарах по авиатопливным операциям.',
+      en: 'Vera Alekseevna brings over 20 years of active laboratory governance and chemical engineering expertise to the aviation fuel industry. She previously directed the fuel testing laboratory at Astana International Airport and possesses extensive background in civil aviation fuel verification. Vera Alekseevna is a prominent member of the Republican Aviation Fuel Commission. She actively participates in advanced JIG certifications, including specialist workshops delivered by JIG inspectors and SKYHANSA in Astana.'
+    }
+  }
+];
+
+const defaultContactsData = {
+  aboutTitleKz: 'Компания жайлы',
+  aboutTitleRu: 'О компании',
+  aboutTitleEn: 'About Company',
+  
+  aboutSubtitleKz: 'Мұнай өнімдері мен авиаотын нарығындағы сенімді және технологиялық серіктес',
+  aboutSubtitleRu: 'Надежный и технологичный партнер на рынке нефтепродуктов и авиатоплива',
+  aboutSubtitleEn: 'A reliable and advanced partner in the petroleum and jet fuel logistics sector',
+  
+  aboutDescKz: '«Smart Mercury Energy» — Қазақстанның энергетикалық және логистикалық секторында кешенді инфрақұрылымы бар, сенімді және серпінді дамып келе жатқан жетекші компаниялардың бірі. Біздің басты мақсатымыз – мұнай өнімдері мен авиациялық отынды JIG-2 халықаралық стандарттары бойынша қабылдау, сақтау, заманауи сараптамалық бақылаудан өткізу, жөнелту және тасымалдау кәсіпорындарын басқару.',
+  aboutDescRu: '«Smart Mercury Energy» — одна из ведущих, стабильно развивающихся компаний в энергетическом и логистическом секторе Казахстана. Наша деятельность сосредоточена на безопасном приеме, хранении, многоступенчатом лабораторном контроле качества, высокотехнологичной перевалке и поставке светлых нефтепродуктов и сертифицированного авиакеросина в соответствии с JIG-2.',
+  aboutDescEn: 'Smart Mercury Energy is one of the leading, sustainably growing companies in the energy and logistics sector of Kazakhstan. Our core activities center on the secure receipt, bulk storage, multi-stage laboratory analysis, global JIG-2 standard compliant handling, and shipping of commercial transport fuels and certified aviation kerosene.',
+  
+  // Stats
+  statVolKz: 'Сыйымдылық',
+  statVolRu: 'Объем парка',
+  statVolEn: 'Total Storage',
+  statVolValue: '19 000 м³',
+  
+  statTanksKz: 'Резервуарлар',
+  statTanksRu: 'Резервуары',
+  statTanksEn: 'Tanks Count',
+  statTanksValue: '13 резервуар',
+  
+  statLaunchKz: 'Іске қосылуы',
+  statLaunchRu: 'Год запуска',
+  statLaunchEn: 'Launched In',
+  statLaunchValue: '2018 жыл',
+  
+  statDistKz: 'Әуежайға дейін',
+  statDistRu: 'До аэропорта',
+  statDistEn: 'To Airport',
+  statDistValue: '6 км қашықтық',
+  
+  // Address, contacts info
+  addressValKz: 'Алматы қаласы, Түрксіб ауданы, Свободная көшесі, 136/2',
+  addressValRu: 'г. Алматы, Турксибский район, ул. Свободная, 136/2',
+  addressValEn: '136/2 Svobodnaya Street, Turksibsky District, Almaty, Kazakhstan',
+  
+  phone: '+7 (727) 355-10-10',
+  email: 'info@mercuryenergy.kz',
+  
+  hoursValKz: 'Дүйсенбі - Жұма: 09:00 - 18:00',
+  hoursValRu: 'Понедельник - Пятница: 09:00 - 18:00',
+  hoursValEn: 'Monday - Friday: 09:00 - 18:00',
+  
+  // FeedBack labels
+  feedbackTitleKz: 'Кері байланыс',
+  feedbackTitleRu: 'Обратная связь',
+  feedbackTitleEn: 'Feedback',
+  
+  feedbackDescKz: 'Сұрақтарыңыз немесе ұсыныстарыңыз болса, хабарласыңыз.',
+  feedbackDescRu: 'Свяжитесь с нами по любым вопросам или сотрудничеству.',
+  feedbackDescEn: 'Contact us for any questions or commercial inquiries.',
+
+  aboutImageUrl: '/src/assets/images/almaty_oil_depot_aerial_1781524403784.jpg',
+
+  infoSystemTitleKz: 'MERCURY ENERGY • Ресми баға саясаты',
+  infoSystemTitleRu: 'MERCURY ENERGY • Официальная ценовая политика',
+  infoSystemTitleEn: 'MERCURY ENERGY • Official Price Policy',
+  infoSystemDescKz: 'Біз серіктестерімізге ең тиімді көтерме және бөлшек бағаларды, Сингапур және Argus халықаралық баға көрсеткіштерімен салыстырылған нақты деректерді ұсынамыз. Барлық деректер нақты уақытта жаңартылып отырады.',
+  infoSystemDescRu: 'Мы предоставляем нашим партнерам самые выгодные оптовые и розничные котировки, основанные на международных индексах Сингапура и Argus. Все данные обновляются в реальном времени.',
+  infoSystemDescEn: 'We offer our partners the most competitive wholesale and retail rates, aligned with international Singapore and Argus benchmarks. All data is updated in real time.',
+  infoSystemImage: ''
+};
+
 const defaultBanners = {
   heroTitleKz: 'SmartME \nMercury Energy',
   heroTitleRu: 'SmartME \nMercury Energy',
@@ -466,6 +635,14 @@ const generateId = (prefix: string = '') => {
   return `${prefix}${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 };
 
+const safeLocalStorageSet = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn(`[LocalStorage Quota Exceeded] Could not write to "${key}". Keeps state in-memory only.`, e);
+  }
+};
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLang] = useState<Lang>('kz');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -498,11 +675,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('price-display-unit-cms', priceDisplayUnit);
+    safeLocalStorageSet('price-display-unit-cms', priceDisplayUnit);
   }, [priceDisplayUnit]);
 
   useEffect(() => {
-    localStorage.setItem('users-list-cms', JSON.stringify(usersList));
+    safeLocalStorageSet('users-list-cms', JSON.stringify(usersList));
   }, [usersList]);
 
   // Gas Stations CMS state
@@ -513,7 +690,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('stations-list-cms', JSON.stringify(stationsList));
+    safeLocalStorageSet('stations-list-cms', JSON.stringify(stationsList));
   }, [stationsList]);
 
   // Dynamic Region Rates state
@@ -524,7 +701,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('region-rates-cms', JSON.stringify(regionRates));
+    safeLocalStorageSet('region-rates-cms', JSON.stringify(regionRates));
   }, [regionRates]);
 
   // Homepage Banners CMS State
@@ -535,14 +712,46 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('banners-cms', JSON.stringify(bannersState));
+    safeLocalStorageSet('banners-cms', JSON.stringify(bannersState));
   }, [bannersState]);
+
+  // Dynamic Leaders State
+  const [leadersList, setLeadersList] = useState<any[]>(() => {
+    const stored = localStorage.getItem('leaders-cms');
+    if (stored) return JSON.parse(stored);
+    return defaultLeaders;
+  });
+
+  useEffect(() => {
+    safeLocalStorageSet('leaders-cms', JSON.stringify(leadersList));
+  }, [leadersList]);
+
+  const updateLeadersList = (list: any[]) => {
+    setLeadersList(list);
+    logUserAction('Басшылық құрамы тізімін өзгертті');
+  };
+
+  // Dynamic Contacts State
+  const [contactsState, setContactsState] = useState<any>(() => {
+    const stored = localStorage.getItem('contacts-cms');
+    if (stored) return JSON.parse(stored);
+    return defaultContactsData;
+  });
+
+  useEffect(() => {
+    safeLocalStorageSet('contacts-cms', JSON.stringify(contactsState));
+  }, [contactsState]);
+
+  const updateContactsState = (updates: any) => {
+    setContactsState(updates);
+    logUserAction('Байланыс және компания деректерін өзгертті');
+  };
 
   // Sync role and session storage
   useEffect(() => {
     if (currentUser) {
       setRole(currentUser.role);
-      localStorage.setItem('curr_user_session', JSON.stringify(currentUser));
+      safeLocalStorageSet('curr_user_session', JSON.stringify(currentUser));
     } else {
       setRole('guest');
       localStorage.removeItem('curr_user_session');
@@ -602,7 +811,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('audit-logs-custom', JSON.stringify(auditLogs));
+    safeLocalStorageSet('audit-logs-custom', JSON.stringify(auditLogs));
   }, [auditLogs]);
 
   // Simulated email alerts
@@ -622,7 +831,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('admin-emails-custom', JSON.stringify(adminEmails));
+    safeLocalStorageSet('admin-emails-custom', JSON.stringify(adminEmails));
   }, [adminEmails]);
 
   // Action Logger + Email Sender Simulator
@@ -1010,25 +1219,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateManagedPrice = (id: string, updates: Partial<ManagedPrice>) => {
+    const target = managedPrices.find(p => p.id === id);
+    if (target) {
+      const oldRetail = target.priceRetail;
+      const oldWholesale = target.priceWholesale;
+      const newRetail = updates.priceRetail !== undefined ? Number(updates.priceRetail) : oldRetail;
+      const newWholesale = updates.priceWholesale !== undefined ? Number(updates.priceWholesale) : oldWholesale;
+      
+      if (oldRetail !== newRetail || oldWholesale !== newWholesale) {
+        addPriceHistoryLog({
+          fuel: target.name,
+          oldPrice: oldRetail,
+          newPrice: newRetail,
+          changedBy: currentUser ? `${currentUser.fullName} (${currentUser.role})` : `Admin (${role})`,
+          type: target.category === 'smartme' ? 'retail' : 'wholesale'
+        });
+        logUserAction(`Баға көрсеткіші өңделді: ${target.name} (Бөлшек: ${oldRetail} -> ${newRetail} ₸/тн, Көтерме: ${oldWholesale} -> ${newWholesale} ₸/тн)`);
+      } else {
+        logUserAction(`Баға көрсеткіші жаңартылды (баға өзгермеді): ${target.name}`);
+      }
+    }
+
     setManagedPrices(prev => prev.map(item => {
       if (item.id === id) {
         const oldRetail = item.priceRetail;
         const oldWholesale = item.priceWholesale;
         const newRetail = updates.priceRetail !== undefined ? Number(updates.priceRetail) : oldRetail;
         const newWholesale = updates.priceWholesale !== undefined ? Number(updates.priceWholesale) : oldWholesale;
-        
-        if (oldRetail !== newRetail || oldWholesale !== newWholesale) {
-          addPriceHistoryLog({
-            fuel: item.name,
-            oldPrice: oldRetail,
-            newPrice: newRetail,
-            changedBy: currentUser ? `${currentUser.fullName} (${currentUser.role})` : `Admin (${role})`,
-            type: item.category === 'smartme' ? 'retail' : 'wholesale'
-          });
-          logUserAction(`Баға көрсеткіші өңделді: ${item.name} (Бөлшек: ${oldRetail} -> ${newRetail} ₸/тн, Көтерме: ${oldWholesale} -> ${newWholesale} ₸/тн)`);
-        } else {
-          logUserAction(`Баға көрсеткіші жаңартылды (баға өзгермеді): ${item.name}`);
-        }
         return { ...item, ...updates, priceRetail: newRetail, priceWholesale: newWholesale };
       }
       return item;
@@ -1065,47 +1282,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Store changes to LocalStorage
   useEffect(() => {
-    localStorage.setItem('spot-rates', JSON.stringify(spotRates));
+    safeLocalStorageSet('spot-rates', JSON.stringify(spotRates));
   }, [spotRates]);
 
   useEffect(() => {
-    localStorage.setItem('app-news', JSON.stringify(news));
+    safeLocalStorageSet('app-news', JSON.stringify(news));
   }, [news]);
 
   useEffect(() => {
-    localStorage.setItem('delivery-requests', JSON.stringify(deliveryRequests));
+    safeLocalStorageSet('delivery-requests', JSON.stringify(deliveryRequests));
   }, [deliveryRequests]);
 
   useEffect(() => {
-    localStorage.setItem('system-alerts', JSON.stringify(alerts));
+    safeLocalStorageSet('system-alerts', JSON.stringify(alerts));
   }, [alerts]);
 
   useEffect(() => {
-    localStorage.setItem('routine-tasks', JSON.stringify(tasks));
+    safeLocalStorageSet('routine-tasks', JSON.stringify(tasks));
   }, [tasks]);
 
   useEffect(() => {
-    localStorage.setItem('competitor-rates', JSON.stringify(competitorRates));
+    safeLocalStorageSet('competitor-rates', JSON.stringify(competitorRates));
   }, [competitorRates]);
 
   useEffect(() => {
-    localStorage.setItem('price-history-logs', JSON.stringify(priceHistoryLogs));
+    safeLocalStorageSet('price-history-logs', JSON.stringify(priceHistoryLogs));
   }, [priceHistoryLogs]);
 
   useEffect(() => {
-    localStorage.setItem('calculations-archive', JSON.stringify(calculationsArchive));
+    safeLocalStorageSet('calculations-archive', JSON.stringify(calculationsArchive));
   }, [calculationsArchive]);
 
   useEffect(() => {
-    localStorage.setItem('tanks-state', JSON.stringify(tanksState));
+    safeLocalStorageSet('tanks-state', JSON.stringify(tanksState));
   }, [tanksState]);
 
   useEffect(() => {
-    localStorage.setItem('water-levels', JSON.stringify(waterLevels));
+    safeLocalStorageSet('water-levels', JSON.stringify(waterLevels));
   }, [waterLevels]);
 
   useEffect(() => {
-    localStorage.setItem('app-theme', 'light');
+    safeLocalStorageSet('app-theme', 'light');
     document.documentElement.classList.remove('dark');
   }, []);
 
@@ -1281,12 +1498,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Competitors
   const updateCompetitorRate = (id: string, updates: Partial<CompetitorRate>) => {
-    setCompetitorRates(prev => prev.map(c => {
-      if (c.id === id) {
-        logUserAction(`Бәсекелес (${c.brand}) бағасын өзгертті`);
-      }
-      return c.id === id ? { ...c, ...updates } : c;
-    }));
+    const target = competitorRates.find(c => c.id === id);
+    if (target) {
+      logUserAction(`Бәсекелес (${target.brand}) бағасын өзгертті`);
+    }
+    setCompetitorRates(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
   };
 
   // Price logs
@@ -1300,11 +1516,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // News Items management
-  const addNewsItem = (item: Omit<NewsItem, 'id' | 'date'>) => {
+  const addNewsItem = (item: Omit<NewsItem, 'id'> & { date?: string }) => {
     const newItem: NewsItem = {
       ...item,
       id: generateId(),
-      date: new Date().toLocaleDateString('kk-KZ', { day: '2-digit', month: 'long', year: 'numeric' }),
+      date: item.date || new Date().toLocaleDateString('kk-KZ', { day: '2-digit', month: 'long', year: 'numeric' }),
     };
     setNews(prev => [newItem, ...prev]);
     addAlert({
@@ -1320,6 +1536,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       logUserAction(`Жаңалықты өшірді: "${target.title}"`);
     }
     setNews(prev => prev.filter(n => n.id !== id));
+  };
+
+  const updateNewsItem = (id: string, updates: Partial<NewsItem>) => {
+    const target = news.find(n => n.id === id);
+    if (target) {
+      logUserAction(`Жаңалықты өзгертті: "${updates.title || target.title}"`);
+    }
+    setNews(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
   };
 
   // Calculations Archive
@@ -1385,7 +1609,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       tasks, addTask, toggleTask, deleteTask,
       competitorRates, updateCompetitorRate,
       priceHistoryLogs, addPriceHistoryLog,
-      news, addNewsItem, deleteNewsItem,
+      news, addNewsItem, updateNewsItem, deleteNewsItem,
       calculationsArchive, saveCalculation, deleteCalculation,
       tanksState, setTanksState, addTank, updateTank, deleteTank, bookVolume, toggleTankStatus,
       waterLevels, updateWaterLevel,
@@ -1394,7 +1618,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       stationsList, addStation, updateStation, deleteStation,
       regionRates, updateRegionRate, addRegionRateFuel, deleteRegionRateFuel,
       bannersState, updateBannersState, clearAuditLogs,
-      managedPrices, addManagedPrice, updateManagedPrice, deleteManagedPrice
+      managedPrices, addManagedPrice, updateManagedPrice, deleteManagedPrice,
+      leadersList, updateLeadersList, contactsState, updateContactsState
     }}>
       {children}
     </AppContext.Provider>

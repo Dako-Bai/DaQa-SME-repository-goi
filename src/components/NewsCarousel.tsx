@@ -75,8 +75,38 @@ export default function NewsCarousel() {
   };
 
   const sortedNews = [...news].sort((a, b) => {
-    if (filter === 'Newest') return new Date(b.date || '').getTime() - new Date(a.date || '').getTime();
-    if (filter === 'Oldest') return new Date(a.date || '').getTime() - new Date(b.date || '').getTime();
+    const parseDateSafe = (dateStr: string) => {
+      if (!dateStr) return 0;
+      const mStyle = dateStr.match(/^(\d{4})\s+M(\d{2})\s+(\d{1,2})/i);
+      if (mStyle) {
+        return new Date(parseInt(mStyle[1]), parseInt(mStyle[2]) - 1, parseInt(mStyle[3])).getTime();
+      }
+      const d = new Date(dateStr);
+      const t = d.getTime();
+      if (!isNaN(t)) return t;
+      const numbers = dateStr.match(/\d+/g);
+      if (numbers && numbers.length >= 3) {
+        const year = parseInt(numbers.find(n => n.length === 4) || '2026');
+        const day = parseInt(numbers[0]);
+        const month = parseInt(numbers[1]);
+        return new Date(year, month - 1, day).getTime();
+      }
+      return 0;
+    };
+
+    const timeA = parseDateSafe(a.date || '');
+    const timeB = parseDateSafe(b.date || '');
+
+    if (filter === 'Newest') {
+      const diff = timeB - timeA;
+      if (diff !== 0) return diff;
+      return b.id.localeCompare(a.id);
+    }
+    if (filter === 'Oldest') {
+      const diff = timeA - timeB;
+      if (diff !== 0) return diff;
+      return a.id.localeCompare(b.id);
+    }
     return b.title.length - a.title.length;
   });
 
