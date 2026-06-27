@@ -25,7 +25,12 @@ import {
   Mail,
   Info,
   FolderOpen,
-  UploadCloud
+  UploadCloud,
+  Lock,
+  Unlock,
+  Undo2,
+  Redo2,
+  Edit3
 } from 'lucide-react';
 
 const safeAlert = (msg: string) => {
@@ -163,6 +168,7 @@ export default function CmsManagementPanel() {
     addNewsItem,
     updateNewsItem,
     deleteNewsItem,
+    updateNewsList,
     logUserAction 
   } = useAppContext();
 
@@ -219,6 +225,7 @@ export default function CmsManagementPanel() {
     setIsSavingNews(true);
     setTimeout(() => {
       const payload = {
+        id: editingNewsId || `news_${Date.now()}`,
         title: newsTitleKz || newsTitleRu || newsTitleEn || 'Атаусыз жаңалық',
         summary: newsSummaryKz || newsSummaryRu || newsSummaryEn || '',
         category: newsCategory,
@@ -237,23 +244,25 @@ export default function CmsManagementPanel() {
       };
 
       if (isAddingNewNews) {
-        addNewsItem(payload);
+        setLocalNews([payload, ...localNews]);
         setIsAddingNewNews(false);
       } else if (editingNewsId) {
-        updateNewsItem(editingNewsId, payload);
+        setLocalNews(localNews.map(n => n.id === editingNewsId ? { ...n, ...payload } : n));
         setEditingNewsId(null);
       }
       setIsSavingNews(false);
-      safeAlert('Жаңалық сәтті сақталды!');
+      setTimeout(recordAction, 0);
+      safeAlert('Өзгерістер уақытша сақталды. Толық қолдану үшін жоғарыдағы "Сақтау" батырмасын басыңыз.');
     }, 400);
   };
 
   const handleDeleteNews = (id: string) => {
     if (confirm('Бұл жаңалықты өшіруге сенімдісіз бе?')) {
-      deleteNewsItem(id);
+      setLocalNews(localNews.filter(n => n.id !== id));
       if (editingNewsId === id) {
         setEditingNewsId(null);
       }
+      setTimeout(recordAction, 0);
     }
   };
 
@@ -354,6 +363,7 @@ export default function CmsManagementPanel() {
       };
       setSlides([...slides, newSlide]);
       setIsAddingNewSlide(false);
+      setTimeout(recordAction, 0);
     } else if (editingSlideId) {
       setSlides(slides.map(s => s.id === editingSlideId ? {
         ...s,
@@ -375,6 +385,7 @@ export default function CmsManagementPanel() {
         isActive: slideIsActive
       } : s));
       setEditingSlideId(null);
+      setTimeout(recordAction, 0);
     }
   };
 
@@ -385,6 +396,7 @@ export default function CmsManagementPanel() {
     }
     setSlides(slides.filter(s => s.id !== id));
     if (editingSlideId === id) setEditingSlideId(null);
+    setTimeout(recordAction, 0);
   };
 
   const moveSlide = (index: number, direction: 'up' | 'down') => {
@@ -395,6 +407,7 @@ export default function CmsManagementPanel() {
     newSlides[index] = newSlides[nextIndex];
     newSlides[nextIndex] = temp;
     setSlides(newSlides);
+    setTimeout(recordAction, 0);
   };
 
   const handleSaveSliderGlobal = () => {
@@ -416,6 +429,9 @@ export default function CmsManagementPanel() {
         slides: slides
       });
       setIsSavingSlider(false);
+      setIsTabEditing(false);
+      setUndoStack([]);
+      setRedoStack([]);
       logUserAction('Интерактивті промо-слайдер баптаулары сәтті жаңартылды');
       safeAlert('Промо-слайдер баптаулары сәтті сақталды!');
     }, 600);
@@ -560,6 +576,7 @@ export default function CmsManagementPanel() {
     }
 
     setLocalLeaders(updatedList);
+    setTimeout(recordAction, 0);
   };
 
   const deleteLeader = (id: string) => {
@@ -567,6 +584,7 @@ export default function CmsManagementPanel() {
       const updatedList = localLeaders.filter(l => l.id !== id);
       setLocalLeaders(updatedList);
       if (editingLeaderId === id) setEditingLeaderId(null);
+      setTimeout(recordAction, 0);
     }
   };
 
@@ -575,10 +593,253 @@ export default function CmsManagementPanel() {
     setTimeout(() => {
       updateLeadersList(localLeaders);
       setIsSavingLeaders(false);
+      setIsTabEditing(false);
+      setUndoStack([]);
+      setRedoStack([]);
       logUserAction('Ғылыми жетекшілік және басшылық құрамы тізімі жаңартылды');
       safeAlert('Басшылық құрамы сәтті сақталды!');
     }, 600);
   };
+
+
+  // ==========================================
+  // EDIT LOCK & UNDO/REDO LOGIC
+  // ==========================================
+  const [isTabEditing, setIsTabEditing] = useState(false);
+  const [undoStack, setUndoStack] = useState<any[]>([]);
+  const [redoStack, setRedoStack] = useState<any[]>([]);
+
+  // Local isolated copy of news for Undo/Redo support
+  const [localNews, setLocalNews] = useState<any[]>(news || []);
+  useEffect(() => {
+    if (!isTabEditing) {
+      setLocalNews(news || []);
+    }
+  }, [news, isTabEditing]);
+
+  const captureSnapshot = (targetTab: string) => {
+    if (targetTab === 'slider') {
+      return {
+        sliderAutoplay,
+        sliderAutoplaySpeed,
+        sliderShowIndicators,
+        sliderShowArrows,
+        slides: JSON.parse(JSON.stringify(slides)),
+        editingSlideId,
+        isAddingNewSlide
+      };
+    } else if (targetTab === 'leaders') {
+      return {
+        localLeaders: JSON.parse(JSON.stringify(localLeaders)),
+        editingLeaderId,
+        isAddingNewLeader,
+        leaderNameKz, leaderNameRu, leaderNameEn,
+        leaderTitleKz, leaderTitleRu, leaderTitleEn,
+        leaderSubKz, leaderSubRu, leaderSubEn,
+        leaderImageUrl, leaderIconName, leaderColor, leaderEmail,
+        leaderBioKz, leaderBioRu, leaderBioEn,
+        lSpec1LabelKz, lSpec1LabelRu, lSpec1LabelEn, lSpec1Val,
+        lSpec2LabelKz, lSpec2LabelRu, lSpec2LabelEn, lSpec2Val
+      };
+    } else if (targetTab === 'contacts') {
+      return {
+        contAboutTitleKz, contAboutTitleRu, contAboutTitleEn,
+        contAboutSubtitleKz, contAboutSubtitleRu, contAboutSubtitleEn,
+        contAboutDescKz, contAboutDescRu, contAboutDescEn,
+        contStatVolKz, contStatVolRu, contStatVolEn, contStatVolVal,
+        contStatTanksKz, contStatTanksRu, contStatTanksEn, contStatTanksVal,
+        contStatLaunchKz, contStatLaunchRu, contStatLaunchEn, contStatLaunchVal,
+        contStatDistKz, contStatDistRu, contStatDistEn, contStatDistVal,
+        contAddressKz, contAddressRu, contAddressEn,
+        contPhone, contEmail,
+        contHoursKz, contHoursRu, contHoursEn,
+        contFeedbackTitleKz, contFeedbackTitleRu, contFeedbackTitleEn,
+        contFeedbackDescKz, contFeedbackDescRu, contFeedbackDescEn,
+        contAboutImageUrl,
+        contInfoSystemTitleKz, contInfoSystemTitleRu, contInfoSystemTitleEn,
+        contInfoSystemDescKz, contInfoSystemDescRu, contInfoSystemDescEn,
+        contInfoSystemImage,
+        infoSystemStatusKz, infoSystemStatusRu, infoSystemStatusEn,
+        infoSystemFooterKz, infoSystemFooterRu, infoSystemFooterEn,
+        infoSystemButtonTextKz, infoSystemButtonTextRu, infoSystemButtonTextEn,
+        infoSystemButtonLink
+      };
+    } else if (targetTab === 'news') {
+      return {
+        localNews: JSON.parse(JSON.stringify(localNews)),
+        editingNewsId,
+        isAddingNewNews,
+        newsTitleKz, newsTitleRu, newsTitleEn,
+        newsSummaryKz, newsSummaryRu, newsSummaryEn,
+        newsCategory, newsImageUrl, newsDate
+      };
+    }
+    return {};
+  };
+
+  const restoreSnapshot = (targetTab: string, s: any) => {
+    if (!s) return;
+    if (targetTab === 'slider') {
+      if (s.sliderAutoplay !== undefined) setSliderAutoplay(s.sliderAutoplay);
+      if (s.sliderAutoplaySpeed !== undefined) setSliderAutoplaySpeed(s.sliderAutoplaySpeed);
+      if (s.sliderShowIndicators !== undefined) setSliderShowIndicators(s.sliderShowIndicators);
+      if (s.sliderShowArrows !== undefined) setSliderShowArrows(s.sliderShowArrows);
+      if (s.slides !== undefined) setSlides(s.slides);
+      if (s.editingSlideId !== undefined) setEditingSlideId(s.editingSlideId);
+      if (s.isAddingNewSlide !== undefined) setIsAddingNewSlide(s.isAddingNewSlide);
+    } else if (targetTab === 'leaders') {
+      if (s.localLeaders !== undefined) setLocalLeaders(s.localLeaders);
+      if (s.editingLeaderId !== undefined) setEditingLeaderId(s.editingLeaderId);
+      if (s.isAddingNewLeader !== undefined) setIsAddingNewLeader(s.isAddingNewLeader);
+      if (s.leaderNameKz !== undefined) setLeaderNameKz(s.leaderNameKz);
+      if (s.leaderNameRu !== undefined) setLeaderNameRu(s.leaderNameRu);
+      if (s.leaderNameEn !== undefined) setLeaderNameEn(s.leaderNameEn);
+      if (s.leaderTitleKz !== undefined) setLeaderTitleKz(s.leaderTitleKz);
+      if (s.leaderTitleRu !== undefined) setLeaderTitleRu(s.leaderTitleRu);
+      if (s.leaderTitleEn !== undefined) setLeaderTitleEn(s.leaderTitleEn);
+      if (s.leaderSubKz !== undefined) setLeaderSubKz(s.leaderSubKz);
+      if (s.leaderSubRu !== undefined) setLeaderSubRu(s.leaderSubRu);
+      if (s.leaderSubEn !== undefined) setLeaderSubEn(s.leaderSubEn);
+      if (s.leaderImageUrl !== undefined) setLeaderImageUrl(s.leaderImageUrl);
+      if (s.leaderIconName !== undefined) setLeaderIconName(s.leaderIconName);
+      if (s.leaderColor !== undefined) setLeaderColor(s.leaderColor);
+      if (s.leaderEmail !== undefined) setLeaderEmail(s.leaderEmail);
+      if (s.leaderBioKz !== undefined) setLeaderBioKz(s.leaderBioKz);
+      if (s.leaderBioRu !== undefined) setLeaderBioRu(s.leaderBioRu);
+      if (s.leaderBioEn !== undefined) setLeaderBioEn(s.leaderBioEn);
+      if (s.lSpec1LabelKz !== undefined) setLSpec1LabelKz(s.lSpec1LabelKz);
+      if (s.lSpec1LabelRu !== undefined) setLSpec1LabelRu(s.lSpec1LabelRu);
+      if (s.lSpec1LabelEn !== undefined) setLSpec1LabelEn(s.lSpec1LabelEn);
+      if (s.lSpec1Val !== undefined) setLSpec1Val(s.lSpec1Val);
+      if (s.lSpec2LabelKz !== undefined) setLSpec2LabelKz(s.lSpec2LabelKz);
+      if (s.lSpec2LabelRu !== undefined) setLSpec2LabelRu(s.lSpec2LabelRu);
+      if (s.lSpec2LabelEn !== undefined) setLSpec2LabelEn(s.lSpec2LabelEn);
+      if (s.lSpec2Val !== undefined) setLSpec2Val(s.lSpec2Val);
+    } else if (targetTab === 'contacts') {
+      if (s.contAboutTitleKz !== undefined) setContAboutTitleKz(s.contAboutTitleKz);
+      if (s.contAboutTitleRu !== undefined) setContAboutTitleRu(s.contAboutTitleRu);
+      if (s.contAboutTitleEn !== undefined) setContAboutTitleEn(s.contAboutTitleEn);
+      if (s.contAboutSubtitleKz !== undefined) setContAboutSubtitleKz(s.contAboutSubtitleKz);
+      if (s.contAboutSubtitleRu !== undefined) setContAboutSubtitleRu(s.contAboutSubtitleRu);
+      if (s.contAboutSubtitleEn !== undefined) setContAboutSubtitleEn(s.contAboutSubtitleEn);
+      if (s.contAboutDescKz !== undefined) setContAboutDescKz(s.contAboutDescKz);
+      if (s.contAboutDescRu !== undefined) setContAboutDescRu(s.contAboutDescRu);
+      if (s.contAboutDescEn !== undefined) setContAboutDescEn(s.contAboutDescEn);
+      if (s.contStatVolKz !== undefined) setContStatVolKz(s.contStatVolKz);
+      if (s.contStatVolRu !== undefined) setContStatVolRu(s.contStatVolRu);
+      if (s.contStatVolEn !== undefined) setContStatVolEn(s.contStatVolEn);
+      if (s.contStatVolVal !== undefined) setContStatVolVal(s.contStatVolVal);
+      if (s.contStatTanksKz !== undefined) setContStatTanksKz(s.contStatTanksKz);
+      if (s.contStatTanksRu !== undefined) setContStatTanksRu(s.contStatTanksRu);
+      if (s.contStatTanksEn !== undefined) setContStatTanksEn(s.contStatTanksEn);
+      if (s.contStatTanksVal !== undefined) setContStatTanksVal(s.contStatTanksVal);
+      if (s.contStatLaunchKz !== undefined) setContStatLaunchKz(s.contStatLaunchKz);
+      if (s.contStatLaunchRu !== undefined) setContStatLaunchRu(s.contStatLaunchRu);
+      if (s.contStatLaunchEn !== undefined) setContStatLaunchEn(s.contStatLaunchEn);
+      if (s.contStatLaunchVal !== undefined) setContStatLaunchVal(s.contStatLaunchVal);
+      if (s.contStatDistKz !== undefined) setContStatDistKz(s.contStatDistKz);
+      if (s.contStatDistRu !== undefined) setContStatDistRu(s.contStatDistRu);
+      if (s.contStatDistEn !== undefined) setContStatDistEn(s.contStatDistEn);
+      if (s.contStatDistVal !== undefined) setContStatDistVal(s.contStatDistVal);
+      if (s.contAddressKz !== undefined) setContAddressKz(s.contAddressKz);
+      if (s.contAddressRu !== undefined) setContAddressRu(s.contAddressRu);
+      if (s.contAddressEn !== undefined) setContAddressEn(s.contAddressEn);
+      if (s.contPhone !== undefined) setContPhone(s.contPhone);
+      if (s.contEmail !== undefined) setContEmail(s.contEmail);
+      if (s.contHoursKz !== undefined) setContHoursKz(s.contHoursKz);
+      if (s.contHoursRu !== undefined) setContHoursRu(s.contHoursRu);
+      if (s.contHoursEn !== undefined) setContHoursEn(s.contHoursEn);
+      if (s.contFeedbackTitleKz !== undefined) setContFeedbackTitleKz(s.contFeedbackTitleKz);
+      if (s.contFeedbackTitleRu !== undefined) setContFeedbackTitleRu(s.contFeedbackTitleRu);
+      if (s.contFeedbackTitleEn !== undefined) setContFeedbackTitleEn(s.contFeedbackTitleEn);
+      if (s.contFeedbackDescKz !== undefined) setContFeedbackDescKz(s.contFeedbackDescKz);
+      if (s.contFeedbackDescRu !== undefined) setContFeedbackDescRu(s.contFeedbackDescRu);
+      if (s.contFeedbackDescEn !== undefined) setContFeedbackDescEn(s.contFeedbackDescEn);
+      if (s.contAboutImageUrl !== undefined) setContAboutImageUrl(s.contAboutImageUrl);
+      if (s.contInfoSystemTitleKz !== undefined) setContInfoSystemTitleKz(s.contInfoSystemTitleKz);
+      if (s.contInfoSystemTitleRu !== undefined) setContInfoSystemTitleRu(s.contInfoSystemTitleRu);
+      if (s.contInfoSystemTitleEn !== undefined) setContInfoSystemTitleEn(s.contInfoSystemTitleEn);
+      if (s.contInfoSystemDescKz !== undefined) setContInfoSystemDescKz(s.contInfoSystemDescKz);
+      if (s.contInfoSystemDescRu !== undefined) setContInfoSystemDescRu(s.contInfoSystemDescRu);
+      if (s.contInfoSystemDescEn !== undefined) setContInfoSystemDescEn(s.contInfoSystemDescEn);
+      if (s.contInfoSystemImage !== undefined) setContInfoSystemImage(s.contInfoSystemImage);
+      if (s.infoSystemStatusKz !== undefined) setInfoSystemStatusKz(s.infoSystemStatusKz);
+      if (s.infoSystemStatusRu !== undefined) setInfoSystemStatusRu(s.infoSystemStatusRu);
+      if (s.infoSystemStatusEn !== undefined) setInfoSystemStatusEn(s.infoSystemStatusEn);
+      if (s.infoSystemFooterKz !== undefined) setInfoSystemFooterKz(s.infoSystemFooterKz);
+      if (s.infoSystemFooterRu !== undefined) setInfoSystemFooterRu(s.infoSystemFooterRu);
+      if (s.infoSystemFooterEn !== undefined) setInfoSystemFooterEn(s.infoSystemFooterEn);
+      if (s.infoSystemButtonTextKz !== undefined) setInfoSystemButtonTextKz(s.infoSystemButtonTextKz);
+      if (s.infoSystemButtonTextRu !== undefined) setInfoSystemButtonTextRu(s.infoSystemButtonTextRu);
+      if (s.infoSystemButtonTextEn !== undefined) setInfoSystemButtonTextEn(s.infoSystemButtonTextEn);
+      if (s.infoSystemButtonLink !== undefined) setInfoSystemButtonLink(s.infoSystemButtonLink);
+    } else if (targetTab === 'news') {
+      if (s.localNews !== undefined) setLocalNews(s.localNews);
+      if (s.editingNewsId !== undefined) setEditingNewsId(s.editingNewsId);
+      if (s.isAddingNewNews !== undefined) setIsAddingNewNews(s.isAddingNewNews);
+      if (s.newsTitleKz !== undefined) setNewsTitleKz(s.newsTitleKz);
+      if (s.newsTitleRu !== undefined) setNewsTitleRu(s.newsTitleRu);
+      if (s.newsTitleEn !== undefined) setNewsTitleEn(s.newsTitleEn);
+      if (s.newsSummaryKz !== undefined) setNewsSummaryKz(s.newsSummaryKz);
+      if (s.newsSummaryRu !== undefined) setNewsSummaryRu(s.newsSummaryRu);
+      if (s.newsSummaryEn !== undefined) setNewsSummaryEn(s.newsSummaryEn);
+      if (s.newsCategory !== undefined) setNewsCategory(s.newsCategory);
+      if (s.newsImageUrl !== undefined) setNewsImageUrl(s.newsImageUrl);
+      if (s.newsDate !== undefined) setNewsDate(s.newsDate);
+    }
+  };
+
+  const handleStartEdit = () => {
+    setIsTabEditing(true);
+    const initialSnapshot = captureSnapshot(subTab);
+    setUndoStack([initialSnapshot]);
+    setRedoStack([]);
+  };
+
+  const recordAction = () => {
+    if (!isTabEditing) return;
+    const currentSnap = captureSnapshot(subTab);
+    setUndoStack(prev => {
+      const last = prev[prev.length - 1];
+      if (JSON.stringify(last) === JSON.stringify(currentSnap)) return prev;
+      return [...prev, currentSnap];
+    });
+    setRedoStack([]);
+  };
+
+  const handleUndo = () => {
+    if (undoStack.length <= 1) return;
+    const current = undoStack[undoStack.length - 1];
+    const previous = undoStack[undoStack.length - 2];
+    setUndoStack(prev => prev.slice(0, -1));
+    setRedoStack(prev => [...prev, current]);
+    restoreSnapshot(subTab, previous);
+  };
+
+  const handleRedo = () => {
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setRedoStack(prev => prev.slice(0, -1));
+    setUndoStack(prev => [...prev, next]);
+    restoreSnapshot(subTab, next);
+  };
+
+  const handleCancelEdit = () => {
+    if (undoStack.length > 0) {
+      // Restore initial state snapshot
+      restoreSnapshot(subTab, undoStack[0]);
+    }
+    setIsTabEditing(false);
+    setUndoStack([]);
+    redoStack && setRedoStack([]);
+  };
+
+  // Switch tabs reset
+  useEffect(() => {
+    setIsTabEditing(false);
+    setUndoStack([]);
+    setRedoStack([]);
+  }, [subTab]);
 
 
   // ==========================================
@@ -641,6 +902,17 @@ export default function CmsManagementPanel() {
   const [contInfoSystemDescEn, setContInfoSystemDescEn] = useState('');
   const [contInfoSystemImage, setContInfoSystemImage] = useState('');
 
+  const [infoSystemStatusKz, setInfoSystemStatusKz] = useState('');
+  const [infoSystemStatusRu, setInfoSystemStatusRu] = useState('');
+  const [infoSystemStatusEn, setInfoSystemStatusEn] = useState('');
+  const [infoSystemFooterKz, setInfoSystemFooterKz] = useState('');
+  const [infoSystemFooterRu, setInfoSystemFooterRu] = useState('');
+  const [infoSystemFooterEn, setInfoSystemFooterEn] = useState('');
+  const [infoSystemButtonTextKz, setInfoSystemButtonTextKz] = useState('');
+  const [infoSystemButtonTextRu, setInfoSystemButtonTextRu] = useState('');
+  const [infoSystemButtonTextEn, setInfoSystemButtonTextEn] = useState('');
+  const [infoSystemButtonLink, setInfoSystemButtonLink] = useState('');
+
   const [isSavingContacts, setIsSavingContacts] = useState(false);
 
   useEffect(() => {
@@ -701,6 +973,17 @@ export default function CmsManagementPanel() {
       setContInfoSystemDescRu(contactsState.infoSystemDescRu || '');
       setContInfoSystemDescEn(contactsState.infoSystemDescEn || '');
       setContInfoSystemImage(contactsState.infoSystemImage || '');
+
+      setInfoSystemStatusKz(contactsState.infoSystemStatusKz || '');
+      setInfoSystemStatusRu(contactsState.infoSystemStatusRu || '');
+      setInfoSystemStatusEn(contactsState.infoSystemStatusEn || '');
+      setInfoSystemFooterKz(contactsState.infoSystemFooterKz || '');
+      setInfoSystemFooterRu(contactsState.infoSystemFooterRu || '');
+      setInfoSystemFooterEn(contactsState.infoSystemFooterEn || '');
+      setInfoSystemButtonTextKz(contactsState.infoSystemButtonTextKz || '');
+      setInfoSystemButtonTextRu(contactsState.infoSystemButtonTextRu || '');
+      setInfoSystemButtonTextEn(contactsState.infoSystemButtonTextEn || '');
+      setInfoSystemButtonLink(contactsState.infoSystemButtonLink || '');
     }
   }, [contactsState]);
 
@@ -763,11 +1046,38 @@ export default function CmsManagementPanel() {
         infoSystemDescKz: contInfoSystemDescKz,
         infoSystemDescRu: contInfoSystemDescRu,
         infoSystemDescEn: contInfoSystemDescEn,
-        infoSystemImage: contInfoSystemImage
+        infoSystemImage: contInfoSystemImage,
+
+        infoSystemStatusKz: infoSystemStatusKz,
+        infoSystemStatusRu: infoSystemStatusRu,
+        infoSystemStatusEn: infoSystemStatusEn,
+        infoSystemFooterKz: infoSystemFooterKz,
+        infoSystemFooterRu: infoSystemFooterRu,
+        infoSystemFooterEn: infoSystemFooterEn,
+        infoSystemButtonTextKz: infoSystemButtonTextKz,
+        infoSystemButtonTextRu: infoSystemButtonTextRu,
+        infoSystemButtonTextEn: infoSystemButtonTextEn,
+        infoSystemButtonLink: infoSystemButtonLink
       });
       setIsSavingContacts(false);
+      setIsTabEditing(false);
+      setUndoStack([]);
+      setRedoStack([]);
       logUserAction('Байланыс және компания туралы мәліметтер жаңартылды');
       safeAlert('Байланыс деректері мен статистика сәтті жаңартылды!');
+    }, 600);
+  };
+
+  const handleSaveNewsGlobal = () => {
+    setIsSavingNews(true);
+    setTimeout(() => {
+      updateNewsList(localNews);
+      setIsSavingNews(false);
+      setIsTabEditing(false);
+      setUndoStack([]);
+      setRedoStack([]);
+      logUserAction('Жаңалықтар тізімі толық жаңартылды');
+      safeAlert('Жаңалықтар тізімі сәтті сақталды!');
     }, 600);
   };
 
@@ -830,9 +1140,138 @@ export default function CmsManagementPanel() {
         </button>
       </div>
 
+      {/* Dynamic Edit Lock & Undo/Redo Toolbar */}
+      <div className={`p-4 rounded-2xl border transition-all flex flex-col md:flex-row items-center justify-between gap-4 ${
+        isTabEditing 
+          ? 'bg-amber-500/10 border-amber-500/30 shadow-amber-500/5 shadow-md animate-[pulse_3s_infinite]' 
+          : 'bg-slate-50 border-slate-200'
+      }`}>
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className={`p-2.5 rounded-xl ${isTabEditing ? 'bg-amber-500/25 text-amber-600' : 'bg-slate-200 text-slate-500'}`}>
+            {isTabEditing ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+          </div>
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+              {isTabEditing 
+                ? (subTab === 'slider' ? 'Басты бет слайдерін өңдеу белсенді' :
+                   subTab === 'leaders' ? 'Басшылық құрамын өңдеу белсенді' :
+                   subTab === 'contacts' ? 'Байланыс & Компанияны өңдеу белсенді' : 'Жаңалықтар тізімін өңдеу белсенді')
+                : 'Контентті қарап шығу режимі'
+              }
+            </h3>
+            <p className="text-[10px] text-slate-500 mt-0.5 font-medium">
+              {isTabEditing 
+                ? 'Өзгерістер тек "Сақтау" батырмасын басқаннан кейін ғана қолданылады. Қателерді алға/артқа қайтаруға болады.'
+                : 'Мәліметтерді өңдеу немесе өзгертулер енгізу үшін "Редакциялауды қосу" батырмасын басыңыз.'
+              }
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2.5 w-full md:w-auto shrink-0">
+          {!isTabEditing ? (
+            <button
+              type="button"
+              id="cms-start-edit-btn"
+              onClick={handleStartEdit}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shadow-md shadow-blue-500/10 transition duration-150 cursor-pointer w-full md:w-auto"
+            >
+              <Edit3 className="w-4 h-4" />
+              <span>Редакциялауды қосу / Өзгерту</span>
+            </button>
+          ) : (
+            <div className="flex items-center flex-wrap gap-2 w-full md:w-auto justify-end">
+              {/* Undo Button */}
+              <button
+                type="button"
+                id="cms-undo-btn"
+                disabled={undoStack.length <= 1}
+                onClick={handleUndo}
+                className="p-2.5 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-slate-700 rounded-xl border border-slate-200 transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-1.5 text-xs font-bold"
+                title="Артқа қайтару (Undo)"
+              >
+                <Undo2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Артқа</span>
+                {undoStack.length > 1 && (
+                  <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 font-mono text-[9px] rounded font-bold">
+                    {undoStack.length - 1}
+                  </span>
+                )}
+              </button>
+
+              {/* Redo Button */}
+              <button
+                type="button"
+                id="cms-redo-btn"
+                disabled={redoStack.length === 0}
+                onClick={handleRedo}
+                className="p-2.5 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-slate-700 rounded-xl border border-slate-200 transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-1.5 text-xs font-bold"
+                title="Алға қайтару (Redo)"
+              >
+                <Redo2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Алға</span>
+                {redoStack.length > 0 && (
+                  <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 font-mono text-[9px] rounded font-bold">
+                    {redoStack.length}
+                  </span>
+                )}
+              </button>
+
+              <div className="w-[1px] h-6 bg-slate-200 mx-1 hidden sm:block"></div>
+
+              {/* Cancel Button */}
+              <button
+                type="button"
+                id="cms-cancel-btn"
+                onClick={handleCancelEdit}
+                className="px-4 py-2.5 bg-slate-150 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              >
+                Бас тарту
+              </button>
+
+              {/* Save Button */}
+              <button
+                type="button"
+                id="cms-save-btn"
+                onClick={() => {
+                  if (subTab === 'slider') handleSaveSliderGlobal();
+                  else if (subTab === 'leaders') handleSaveAllLeaders();
+                  else if (subTab === 'contacts') handleSaveContacts();
+                  else if (subTab === 'news') handleSaveNewsGlobal();
+                }}
+                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-500/10 transition-colors cursor-pointer flex items-center gap-1.5 animate-[bounce_2s_infinite]"
+              >
+                <Check className="w-4 h-4" />
+                <span>Сақтау</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* SECTION 1: SLIDER MANAGEMENT */}
       {subTab === 'slider' && (
-        <div className="space-y-6 animate-fade-in text-left">
+        <div className="space-y-6 animate-fade-in text-left relative min-h-[400px]">
+          {!isTabEditing && (
+            <div className="absolute inset-0 bg-slate-50/70 backdrop-blur-[1.5px] z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200/85 shadow-xl max-w-sm flex flex-col items-center animate-none">
+                <div className="p-3.5 bg-blue-50 rounded-2xl text-blue-600 mb-4">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Көру режимі белсенді</h4>
+                <p className="text-xs text-slate-500 mt-2 mb-5">
+                  Басты беттің промо-слайдерін өзгерту, жаңа слайд қосу, жою немесе оларды реттеу үшін алдымен "Редакциялауды қосу" батырмасын басыңыз.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleStartEdit}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/10 transition-all cursor-pointer font-sans"
+                >
+                  Өңдеуді қосу
+                </button>
+              </div>
+            </div>
+          )}
           
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-slate-100">
             <div>
@@ -1204,7 +1643,27 @@ export default function CmsManagementPanel() {
 
       {/* SECTION 2: LEADERS LIST MANAGEMENT */}
       {subTab === 'leaders' && (
-        <div className="space-y-6 animate-fade-in text-left">
+        <div className="space-y-6 animate-fade-in text-left relative min-h-[400px]">
+          {!isTabEditing && (
+            <div className="absolute inset-0 bg-slate-50/70 backdrop-blur-[1.5px] z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200/85 shadow-xl max-w-sm flex flex-col items-center animate-none">
+                <div className="p-3.5 bg-blue-50 rounded-2xl text-blue-600 mb-4">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Көру режимі белсенді</h4>
+                <p className="text-xs text-slate-500 mt-2 mb-5">
+                  Басшылық құрамы мен ғылыми жетекшілерді өзгерту, реттеу, жаңадан қосу немесе жою үшін алдымен "Редакциялауды қосу" батырмасын басыңыз.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleStartEdit}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/10 transition-all cursor-pointer font-sans"
+                >
+                  Өңдеуді қосу
+                </button>
+              </div>
+            </div>
+          )}
           
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-slate-100">
             <div>
@@ -1592,7 +2051,27 @@ export default function CmsManagementPanel() {
 
       {/* SECTION 3: CONTACTS & COMPANY PROFILE MANAGEMENT */}
       {subTab === 'contacts' && (
-        <div className="space-y-6 animate-fade-in text-left">
+        <div className="space-y-6 animate-fade-in text-left relative min-h-[400px]">
+          {!isTabEditing && (
+            <div className="absolute inset-0 bg-slate-50/70 backdrop-blur-[1.5px] z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200/85 shadow-xl max-w-sm flex flex-col items-center animate-none">
+                <div className="p-3.5 bg-blue-50 rounded-2xl text-blue-600 mb-4">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Көру режимі белсенді</h4>
+                <p className="text-xs text-slate-500 mt-2 mb-5">
+                  Байланыс деректерін, мекенжайларды, статистиканы немесе Ақпараттық Жүйе блогын өңдеп өзгерту үшін алдымен "Редакциялауды қосу" батырмасын басыңыз.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleStartEdit}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/10 transition-all cursor-pointer font-sans"
+                >
+                  Өңдеуді қосу
+                </button>
+              </div>
+            </div>
+          )}
           
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-slate-100">
             <div>
@@ -2001,7 +2480,27 @@ export default function CmsManagementPanel() {
       )}
 
       {subTab === 'news' && (
-        <div className="space-y-6 animate-fade-in text-left">
+        <div className="space-y-6 animate-fade-in text-left relative min-h-[400px]">
+          {!isTabEditing && (
+            <div className="absolute inset-0 bg-slate-50/70 backdrop-blur-[1.5px] z-20 rounded-2xl flex flex-col items-center justify-center p-6 text-center">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200/85 shadow-xl max-w-sm flex flex-col items-center animate-none">
+                <div className="p-3.5 bg-blue-50 rounded-2xl text-blue-600 mb-4">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Көру режимі белсенді</h4>
+                <p className="text-xs text-slate-500 mt-2 mb-5">
+                  Жаңалықтар тізімін өзгерту, жаңалықтарды өңдеу, жаңадан қосу немесе жою үшін алдымен "Редакциялауды қосу" батырмасын басыңыз.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleStartEdit}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/10 transition-all cursor-pointer font-sans"
+                >
+                  Өңдеуді қосу
+                </button>
+              </div>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-slate-100">
             <div>
               <h3 className="text-base font-extrabold text-slate-900 font-sans">Жаңалықтар мен мақалаларды басқару</h3>

@@ -15,57 +15,72 @@ export default function CompanyManagement() {
   const leaders = leadersList || [];
 
   return (
-    <div id="company-management-container" className="bg-[#245dff] border border-blue-400/20 rounded-[32px] p-6 sm:p-8 space-y-6 shadow-xl shadow-blue-650/20 text-white">
+    <div id="company-management-container" className="space-y-12 w-full py-8 text-white">
       
-      {/* Minimalist Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-white/10">
-        <div>
-          <span className="text-[10px] uppercase font-bold tracking-widest text-amber-200 font-mono">
-            {lang === 'kz' ? 'Ғылыми жетекшілік' : lang === 'ru' ? 'Научное руководство' : 'Scientific Leadership'}
-          </span>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
-            {lang === 'kz' ? 'Ресми және кәсіби басшылық құрамы' : lang === 'ru' ? 'Руководящий состав' : 'Expert Governance'}
-          </h2>
-        </div>
+      {/* Centered Premium Header */}
+      <div className="text-center space-y-3 max-w-2xl mx-auto">
+        <span className="px-3 py-1 bg-blue-500/10 text-blue-300 rounded-full text-[10px] sm:text-xs font-extrabold uppercase tracking-widest border border-blue-500/15 inline-block font-mono">
+          {lang === 'kz' ? 'Ғылыми жетекшілік және басшылық' : lang === 'ru' ? 'Научное руководство и управление' : 'Scientific Governance & Leadership'}
+        </span>
+        <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight font-sans">
+          {lang === 'kz' ? 'Ресми және кәсіби басшылық құрамы' : lang === 'ru' ? 'Руководящий состав компании' : 'Executive Governance & Leadership'}
+        </h2>
+        <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto rounded-full mt-2" />
       </div>
 
-      {/* Grid of Executive Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Grid of Executive Cards - Highly Elegant, Expanded Design */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {leaders.map((leader, i) => {
           const IconComponent = iconMap[leader.iconName] || CircleUser;
           return (
             <div 
               key={leader.id || i}
               onClick={() => setSelectedLeader(i)}
-              className="bg-[#1d52e5] hover:bg-blue-700/40 p-4 rounded-2xl flex items-center gap-3.5 transition-all cursor-pointer group relative border border-blue-400/30 hover:border-white/35 text-white"
+              className="bg-[#121f3d]/60 hover:bg-[#152a54]/80 border border-blue-400/15 hover:border-blue-400/40 p-6 sm:p-8 rounded-[2rem] flex flex-col items-center text-center transition-all duration-300 cursor-pointer group relative shadow-lg hover:shadow-2xl hover:-translate-y-1 text-white"
             >
-              <div className="relative shrink-0">
-                {leader.imageUrl ? (
-                  <img 
-                    src={leader.imageUrl} 
-                    alt={leader.name?.[lang as 'kz' | 'ru' | 'en'] || leader.name?.kz || ''} 
-                    className="w-12 h-12 rounded-xl object-cover border border-blue-300/20 group-hover:scale-102 transition-transform"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-xl bg-blue-800 flex items-center justify-center text-white font-bold text-lg border border-blue-350">
-                    {leader.name?.kz ? leader.name.kz.substring(0, 2) : 'ME'}
-                  </div>
-                )}
-                <div className={`absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-lg ${leader.color || 'bg-blue-600'} flex items-center justify-center text-white scale-90 border border-white/10`}>
-                  <IconComponent className="w-2.5 h-2.5" />
+              {/* Leader Avatar / Portrait Frame - Spacious and Aesthetic */}
+              <div className="relative shrink-0 mb-5">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-blue-400/20 group-hover:border-blue-400/50 transition-colors duration-300 shadow-md">
+                  {leader.imageUrl ? (
+                    <img 
+                      src={leader.imageUrl} 
+                      alt={leader.name?.[lang as 'kz' | 'ru' | 'en'] || leader.name?.kz || ''} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-blue-900/60 flex items-center justify-center text-white font-bold text-2xl">
+                      {leader.name?.kz ? leader.name.kz.substring(0, 2) : 'ME'}
+                    </div>
+                  )}
+                </div>
+                <div className={`absolute -bottom-1 -right-1 w-6.5 h-6.5 rounded-lg ${leader.color || 'bg-blue-600'} flex items-center justify-center text-white scale-100 border border-white/10 shadow`}>
+                  <IconComponent className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-bold text-xs sm:text-sm text-white group-hover:text-amber-200 transition-colors leading-tight truncate">
-                  {leader.name?.[lang as 'kz' | 'ru' | 'en'] || leader.name?.kz || leader.name?.ru || leader.name?.en || ''}
-                </h3>
-                <p className="text-[11px] text-blue-100 leading-tight mt-0.5 truncate bg-[#1746c8]/50 rounded px-1.5 py-0.5 inline-block max-w-full">
-                  {leader.title?.[lang as 'kz' | 'ru' | 'en'] || leader.title?.kz || leader.title?.ru || leader.title?.en || ''}
-                </p>
-                <span className="text-[9px] uppercase font-black tracking-wider text-amber-300 group-hover:text-amber-200 mt-1 block">
-                  {lang === 'kz' ? 'Деректерді көру →' : lang === 'ru' ? 'Подробнее →' : 'View Profile →'}
-                </span>
+
+              {/* Leader Info block */}
+              <div className="w-full space-y-3 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-extrabold text-base sm:text-lg text-white group-hover:text-amber-300 transition-colors leading-tight">
+                    {leader.name?.[lang as 'kz' | 'ru' | 'en'] || leader.name?.kz || leader.name?.ru || leader.name?.en || ''}
+                  </h3>
+                  <p className="text-xs text-blue-200 leading-snug mt-2 px-3 py-1 bg-blue-950/40 border border-blue-500/10 rounded-full inline-block max-w-full truncate">
+                    {leader.title?.[lang as 'kz' | 'ru' | 'en'] || leader.title?.kz || leader.title?.ru || leader.title?.en || ''}
+                  </p>
+                  {leader.sub && (
+                    <span className="block text-[11px] text-slate-300 font-semibold mt-2.5">
+                      {leader.sub?.[lang as 'kz' | 'ru' | 'en'] || leader.sub?.kz || ''}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="pt-4 border-t border-blue-400/10 mt-4">
+                  <span className="text-[10px] sm:text-xs uppercase font-black tracking-widest text-amber-300 group-hover:text-amber-200 transition-colors flex items-center justify-center gap-1">
+                    <span>{lang === 'kz' ? 'Толық профиль' : lang === 'ru' ? 'Подробнее' : 'View Profile'}</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </span>
+                </div>
               </div>
             </div>
           );

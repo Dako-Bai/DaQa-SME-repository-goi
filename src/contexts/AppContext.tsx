@@ -102,6 +102,7 @@ interface AppContextType {
   addNewsItem: (item: Omit<NewsItem, 'id'> & { date?: string }) => void;
   updateNewsItem: (id: string, updates: Partial<NewsItem>) => void;
   deleteNewsItem: (id: string) => void;
+  updateNewsList: (list: NewsItem[]) => void;
 
   // Calculational Commercial Offers Archive (Есептеулер архиві)
   calculationsArchive: any[];
@@ -1253,11 +1254,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteManagedPrice = (id: string) => {
-    const target = managedPrices.find(p => p.id === id);
+    const target = managedPrices.find(p => String(p.id) === String(id));
     if (target) {
       logUserAction(`Баға көрсеткіші жойылды: ${target.name} (${target.category})`);
-      setManagedPrices(prev => prev.filter(item => item.id !== id));
     }
+    setManagedPrices(prev => prev.filter(item => String(item.id) !== String(id)));
   };
 
   // Oil Tank Volumes State
@@ -1384,7 +1385,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteSpotRate = (id: string) => {
-    const target = spotRates.find(p => p.id === id);
+    const target = spotRates.find(p => String(p.id) === String(id));
     if (target) {
       addAlert({
         type: 'warning',
@@ -1392,7 +1393,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
       logUserAction(`Отын бағасын жойды: ${target.name}`);
     }
-    setSpotRates(prev => prev.filter(item => item.id !== id));
+    setSpotRates(prev => prev.filter(item => String(item.id) !== String(id)));
   };
 
   // Delivery Requests Actions
@@ -1531,11 +1532,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteNewsItem = (id: string) => {
-    const target = news.find(n => n.id === id);
+    const target = news.find(n => String(n.id) === String(id));
     if (target) {
       logUserAction(`Жаңалықты өшірді: "${target.title}"`);
     }
-    setNews(prev => prev.filter(n => n.id !== id));
+    setNews(prev => prev.filter(n => String(n.id) !== String(id)));
   };
 
   const updateNewsItem = (id: string, updates: Partial<NewsItem>) => {
@@ -1544,6 +1545,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       logUserAction(`Жаңалықты өзгертті: "${updates.title || target.title}"`);
     }
     setNews(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
+  };
+
+  const updateNewsList = (list: NewsItem[]) => {
+    setNews(list);
+    logUserAction(`Жаңалықтар тізімін жаңартты`);
   };
 
   // Calculations Archive
@@ -1609,7 +1615,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       tasks, addTask, toggleTask, deleteTask,
       competitorRates, updateCompetitorRate,
       priceHistoryLogs, addPriceHistoryLog,
-      news, addNewsItem, updateNewsItem, deleteNewsItem,
+      news, addNewsItem, updateNewsItem, deleteNewsItem, updateNewsList,
       calculationsArchive, saveCalculation, deleteCalculation,
       tanksState, setTanksState, addTank, updateTank, deleteTank, bookVolume, toggleTankStatus,
       waterLevels, updateWaterLevel,

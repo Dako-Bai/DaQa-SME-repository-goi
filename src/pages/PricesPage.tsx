@@ -14,6 +14,11 @@ export default function PricesPage() {
   const infoSystemDesc = cs[`infoSystemDesc${lang === 'kz' ? 'Kz' : lang === 'ru' ? 'Ru' : 'En'}`] || cs.infoSystemDescKz || (lang === 'kz' ? 'Біз серіктестерімізге ең тиімді көтерме және бөлшек бағаларды, Сингапур және Argus халықаралық баға көрсеткіштерімен салыстырылған нақты деректерді ұсынамыз. Барлық деректер нақты уақытта жаңартылып отырады.' : 'Мы предоставляем нашим партнерам самые выгодные оптовые и розничные котировки, основанные на международных индексах Сингапура и Argus. Все данные обновляются в реальном времени.');
   const infoSystemImage = cs.infoSystemImage;
 
+  const infoSystemStatus = cs[`infoSystemStatus${lang === 'kz' ? 'Kz' : lang === 'ru' ? 'Ru' : 'En'}`] || cs.infoSystemStatusKz || (lang === 'kz' ? 'Ресми тарифтер • Барлығы ашық' : 'Официальные тарифы • Все открыто');
+  const infoSystemFooter = cs[`infoSystemFooter${lang === 'kz' ? 'Kz' : lang === 'ru' ? 'Ru' : 'En'}`] || cs.infoSystemFooterKz || 'System Live Platform • Verified refinery intelligence';
+  const infoSystemButtonText = cs[`infoSystemButtonText${lang === 'kz' ? 'Kz' : lang === 'ru' ? 'Ru' : 'En'}`] || cs.infoSystemButtonTextKz || '';
+  const infoSystemButtonLink = cs.infoSystemButtonLink || '';
+
   const isGuest = role === 'guest' || !currentUser;
 
   // Price Category Tab Filter
@@ -298,13 +303,28 @@ export default function PricesPage() {
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal whitespace-pre-wrap">
               {infoSystemDesc}
             </p>
-            <div className="pt-2 text-xs text-amber-300 font-mono flex items-center gap-2">
+            
+            {infoSystemButtonText && (
+              <div className="pt-1">
+                <a
+                  href={infoSystemButtonLink || '#'}
+                  target={infoSystemButtonLink.startsWith('http') ? '_blank' : undefined}
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-blue-500/25 cursor-pointer"
+                >
+                  <span>{infoSystemButtonText}</span>
+                  <span>→</span>
+                </a>
+              </div>
+            )}
+
+            <div className="pt-1 text-xs text-amber-300 font-mono flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>{lang === 'kz' ? 'Ресми тарифтер • Барлығы ашық' : 'Официальные тарифы • Все открыто'}</span>
+              <span>{infoSystemStatus}</span>
             </div>
           </div>
           <div className="pt-4 border-t border-white/5 text-[10px] text-slate-400 font-mono text-left relative z-10">
-            System Live Platform • Verified refinery intelligence
+            {infoSystemFooter}
           </div>
         </div>
       </div>

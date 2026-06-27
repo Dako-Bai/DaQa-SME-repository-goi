@@ -220,19 +220,7 @@ export default function NewsCarousel() {
                           referrerPolicy="no-referrer"
                         />
 
-                        {role === 'admin' && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm(lang === 'kz' ? 'Бұл жаңалықты өшіруді қалайсыз ба?' : lang === 'ru' ? 'Удалить эту новость?' : 'Delete this news?')) {
-                                deleteNewsItem(item.id);
-                              }
-                            }}
-                            className="absolute top-2.5 right-2.5 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition shadow z-10 cursor-pointer border border-red-500/10"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+
                       </div>
                     )}
                     <div className="p-4.5 space-y-2.5">
